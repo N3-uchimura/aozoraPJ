@@ -1,0 +1,26 @@
+{
+  "name": "aozora.extractor",
+  "productName": "aozoraExtractor",
+  "version": "0.0.1",
+  "description": "application for aozoraExtractor",
+  "main": "extract.ts",
+  "scripts": {
+    "start": "ts-node extract.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com:N3-uchimura/aozoraExtractor.git"
+  },
+  "keywords": [],
+  "author": {
+    "name": "numthree-uchimura (https://github.com/N3-uchimura/)",
+    "email": "uchimura@numthree.net"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "log4js": "^6.9.1",
+    "path": "^0.12.7",
+    "ts-node": "^10.9.2"
+  }
+}

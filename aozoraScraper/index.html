@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8" />
+  <title>青空文庫スクレイピングツール</title>
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';">
+  <link rel="stylesheet" href="css/index.css">
+</head>
+
+<body>
+  <h1>書籍スクレイピング画面</h1>
+  <div class="wrapper">
+    <div class="button_area">
+      <div class="operation_area">
+        <h3>スクレイピング</h3>
+        <div><button class="button-g button-wide button-2" value="edit" onclick="gotoScrape();">スクレイピング開始</button></div>
+        <div><button class="button-g button-wide" onclick="pauseScrape();">スクレイピング終了</button></div>
+      </div>
+      <div class="progressarea">
+        <div>成功:<span id="success"></span>/<span id="successtotal"></span></div>
+        <div>失敗:<span id="fail"></span>/<span id="failtotal"></span></div>
+      </div>
+      <div class="operation_area">
+        <h3>ステータス</h3>
+        <div id="scrapingpage"></div>
+        <div id="scrapingstatus"></div>
+      </div>
+      <div class="operation_area">
+        <div><button class="button-g button-4 button-wide" value="exit" onclick="exitApp();">終了</button></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p><small>&copy; 2024 N3 LLC All Rights Reserved. </small></p>
+  </footer>
+
+  <script>
+    // 対象行
+    const scrapingpageDom = document.getElementById('scrapingpage');
+    // ステータス
+    const scrapingstatusDom = document.getElementById('scrapingstatus');
+    // 進捗表示
+    const successDom = document.getElementById('success');
+    // 進捗表示
+    const failDom = document.getElementById('fail');
+    // 合計表示
+    const successtotalDom = document.getElementById('successtotal');
+    // 合計表示
+    const failtotalDom = document.getElementById('failtotal');
+
+    // 合計数
+    window.api.on('total', arg => {
+      try {
+        // 成功合計数
+        successtotalDom.innerHTML = arg;
+        // 失敗合計数
+        failtotalDom.innerHTML = arg;
+
+      } catch (e) {
+        // エラー処理
+        console.log(e);
+      }
+    });
+
+    // 成功進捗更新
+    window.api.on('update', arg => {
+      try {
+        console.log(arg);
+        // 成功数
+        successDom.innerHTML = arg.success;
+        // 失敗数
+        failDom.innerHTML = arg.fail;
+
+      } catch (e) {
+        // エラー処理
+        console.log(e);
+      }
+    });
+
+    // ステータス更新
+    window.api.on('statusUpdate', arg => {
+      try {
+        // ステータス表示
+        scrapingstatusDom.innerHTML = `
+          スクレイピング中: ${arg}`;
+
+      } catch (e) {
+        // エラー処理
+        console.log(e);
+      }
+    });
+
+    // ステータス更新
+    window.api.on('pageUpdate', arg => {
+      try {
+        // ステータス表示
+        scrapingpageDom.innerHTML = `
+          対象: ${arg}`;
+
+      } catch (e) {
+        // エラー処理
+        console.log(e);
+      }
+    });
+
+    // スクレイピング開始
+    const gotoScrape = () => {
+      try {
+        // フォーム初期化
+        successDom.innerHTML = '';
+        failDom.innerHTML = '';
+        successtotalDom.innerHTML = '';
+        failtotalDom.innerHTML = '';
+        scrapingstatusDom.innerHTML = '';
+        // スクレイピング
+        window.api.send('scrape', '');
+
+      } catch (e) {
+        // エラー処理
+        console.log(e);
+      }
+    }
+
+    // アプリ終了
+    const exitApp = () => {
+      try {
+        // アプリ終了
+        window.api.send('exit');
+
+      } catch (e) {
+        // エラー処理
+        console.log(e);
+      }
+    }
+  </script>
+</body>
+
+</html>
