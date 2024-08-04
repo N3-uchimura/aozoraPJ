@@ -1,5 +1,5 @@
 {
-  "name": "aozora.modifier",
+  "name": "numthree.com.aozoramodifier",
   "productName": "aozoraModifier",
   "version": "1.0.0",
   "description": "application for aozoraModifier",
@@ -7,17 +7,13 @@
   "scripts": {
     "start": "ts-node modify.ts"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com:N3-uchimura/aozoraModifier.git"
-  },
   "keywords": [],
   "author": {
     "name": "numthree-uchimura (https://github.com/N3-uchimura/)",
     "email": "uchimura@numthree.net"
   },
-  "license": "MIT",
   "dependencies": {
+    "@types/encoding-japanese": "^2.0.5",
     "encoding-japanese": "^2.1.0",
     "fs": "^0.0.1-security",
     "iconv-lite": "^0.6.3",
@@ -26,7 +22,5 @@
     "path": "^0.12.7",
     "ts-node": "^10.9.2"
   },
-  "devDependencies": {
-    "@types/encoding-japanese": "^2.0.5"
-  }
+  "license": "ISC"
 }

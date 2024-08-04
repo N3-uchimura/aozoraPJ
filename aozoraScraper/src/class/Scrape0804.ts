@@ -1,42 +1,40 @@
 /**
- * myScraper.ts
+ * Scrape.ts
  *
  * class：Scrape
  * function：scraping site
- * updated: 2024/04/29
+ * updated: 2024/08/04
  **/
 
 // constants
+const USER_ROOT_PATH: string = process.env[process.platform == "win32" ? "USERPROFILE" : "HOME"] ?? ''; // user path
+const CHROME_EXEC_PATH1: string = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'; // chrome.exe path1
+const CHROME_EXEC_PATH2: string = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'; // chrome.exe path2
+const CHROME_EXEC_PATH3: string = '\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe'; // chrome.exe path3
 const DISABLE_EXTENSIONS: string = "--disable-extensions"; // disable extension
 const ALLOW_INSECURE: string = "--allow-running-insecure-content"; // allow insecure content
 const IGNORE_CERT_ERROR: string = "--ignore-certificate-errors"; // ignore cert-errors
 const NO_SANDBOX: string = "--no-sandbox"; // no sandbox
 const DISABLE_SANDBOX: string = "--disable-setuid-sandbox"; // no setup sandbox
 const DISABLE_DEV_SHM: string = "--disable-dev-shm-usage"; // no dev shm
+const DISABLE_GPU: string = "--disable-gpu"; // no gpu
 const NO_FIRST_RUN: string = "--no-first-run"; // no first run
 const NO_ZYGOTE: string = "--no-zygote"; // no zygote
-const HYDE_BARS: string = "--hide-scrollbars"; // hyde sb
-const MUTE_AUDIO: string = "--mute-audio"; // mute audio
 const MAX_SCREENSIZE: string = "--start-maximized"; // max screen
-const DEF_USER_AGENT1: string =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36"; // useragent1
-const DEF_USER_AGENT2: string =
-  "Mozilla/5.0 (Linux; U; Android 4.0.3; ja-jp; SC-02C Build/IML74K) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30"; // useragent2
-const DEF_USER_AGENT3: string =
-  "Mozilla/5.0 (Android; Mobile; rv:21.0) Gecko/21.0 Firefox/21.0"; // useragent3
-const DEF_USER_AGENT4: string =
-  "Mozilla/5.0 (Linux; Android 4.0.3; SC-02C Build/IML74K) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.0.1410.58 Mobile Safari/537.31"; // useragent4
-const DEF_USER_AGENT5: string =
-  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.82 Safari/537.36"; // useragent5
+const DEF_USER_AGENT: string =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36"; // useragent
 
 // define modules
+import * as fs from "fs"; // fs
+import * as path from "path"; // path
 import { setTimeout } from 'node:timers/promises'; // wait for seconds
-import puppeteer from "puppeteer"; // Puppeteer for scraping
+import puppeteer from "puppeteer-core"; // Puppeteer for scraping
 
 //* Interfaces
 // puppeteer options
 interface puppOption {
   headless: boolean; // display mode
+  executablePath: string; // chrome.exe path
   ignoreDefaultArgs: string[]; // ignore extensions
   args: string[]; // args
 }
@@ -48,7 +46,6 @@ export class Scrape {
 
   private _result: boolean; // scrape result
   private _height: number; // body height
-  private _useragents: string[]; // body height
 
   // constractor
   constructor() {
@@ -56,8 +53,6 @@ export class Scrape {
     this._result = false;
     // height
     this._height = 0;
-    // height
-    this._useragents = [DEF_USER_AGENT1, DEF_USER_AGENT2, DEF_USER_AGENT3, DEF_USER_AGENT4, DEF_USER_AGENT5];
   }
 
   // initialize
@@ -66,17 +61,18 @@ export class Scrape {
       try {
         const puppOptions: puppOption = {
           headless: true, // no display mode
+          executablePath: getChromePath(), // chrome.exe path
           ignoreDefaultArgs: [DISABLE_EXTENSIONS], // ignore extensions
           args: [
             NO_SANDBOX,
             DISABLE_SANDBOX,
+            DISABLE_DEV_SHM,
+            DISABLE_GPU,
             NO_FIRST_RUN,
             NO_ZYGOTE,
             ALLOW_INSECURE,
             IGNORE_CERT_ERROR,
             MAX_SCREENSIZE,
-            HYDE_BARS,
-            MUTE_AUDIO
           ], // args
         };
         // lauch browser
@@ -88,15 +84,8 @@ export class Scrape {
           width: 1920,
           height: 1000,
         });
-        // random
-        const arrIdx: number = Math.floor(Math.random() * 4);
         // mimic agent
-        await Scrape.page.setUserAgent(this._useragents[arrIdx]);
-        // allow multiple downloadd
-        await Scrape.page._client().send('Page.setDownloadBehavior', {
-          behavior: 'allow',
-          downloadPath: 'C:\\Users\\koichi\\Downloads'
-        });
+        await Scrape.page.setUserAgent(DEF_USER_AGENT);
         // resolved
         resolve();
 
@@ -104,7 +93,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`1: ${e.message}`);
+          console.log(`init: ${e.message}`);
           // reject
           reject();
         }
@@ -123,7 +112,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`2: ${e.message}`);
+          console.log(`getTitle: ${e.message}`);
           // reject
           reject(e.message);
         }
@@ -142,7 +131,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`2: ${e.message}`);
+          console.log(`getHref: ${e.message}`);
           // reject
           reject(e.message);
         }
@@ -163,30 +152,9 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`3: ${e.message}`);
+          console.log(`pressEnter: ${e.message}`);
           // reject
           reject();
-        }
-      }
-    });
-  }
-
-  // goback
-  doGoBack(): Promise<void> {
-    return new Promise(async (resolve, reject) => {
-      try {
-        // go back
-        await Scrape.page.goBack();
-        // resolved
-        resolve();
-
-      } catch (e: unknown) {
-        // if type is error
-        if (e instanceof Error) {
-          // error
-          console.log(`2: ${e.message}`);
-          // reject
-          reject(e.message);
         }
       }
     });
@@ -211,9 +179,30 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`4: ${e.message}`);
+          console.log(`doGo: ${e.message}`);
           // reject
           reject();
+        }
+      }
+    });
+  }
+
+  // goback
+  doGoBack(): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // go back
+        await Scrape.page.goBack();
+        // resolved
+        resolve();
+
+      } catch (e: unknown) {
+        // if type is error
+        if (e instanceof Error) {
+          // error
+          console.log(`doGoBack: ${e.message}`);
+          // reject
+          reject(e.message);
         }
       }
     });
@@ -232,7 +221,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`5: ${e.message}`);
+          console.log(`doClick: ${e.message}`);
           // reject
           reject();
         }
@@ -253,38 +242,9 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`6: ${e.message}`);
+          console.log(`doType: ${e.message}`);
           // reject
           reject();
-        }
-      }
-    });
-  }
-
-  // counter
-  doCountChildren(elem: string): Promise<number> {
-    return new Promise(async (resolve, reject) => {
-      try {
-        // type element on specified value
-        const child: any = await Scrape.page.$eval(elem, (e: any) => e.children);
-
-        // if exists
-        if (child) {
-          // resolved
-          resolve(Object.keys(child).length);
-
-        } else {
-          // resolved
-          resolve(0);
-        }
-
-      } catch (e: unknown) {
-        // if type is error
-        if (e instanceof Error) {
-          // error
-          console.log(`7: ${e.message}`);
-          // reject
-          reject(0);
         }
       }
     });
@@ -303,7 +263,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`8: ${e.message}`);
+          console.log(`doClear: ${e.message}`);
           // reject
           reject();
         }
@@ -324,7 +284,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`9: ${e.message}`);
+          console.log(`doSelect: ${e.message}`);
           // reject
           reject();
         }
@@ -345,7 +305,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`10: ${e.message}`);
+          console.log(`doScreenshot: ${e.message}`);
           // reject
           reject();
         }
@@ -367,7 +327,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`11: ${e.message}`);
+          console.log(`mouseWheel: ${e.message}`);
           // reject
           reject();
         }
@@ -416,7 +376,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`12: ${e.message}`);
+          console.log(`doSingleEval: ${e.message}`);
           // reject
           reject(e.message);
         }
@@ -450,7 +410,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`13: ${e.message}`);
+          console.log(`doMultiEval: ${e.message}`);
           // reject
           reject(e.message);
         }
@@ -470,7 +430,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`14: ${e.message}`);
+          console.log(`doWaitFor: ${e.message}`);
           // reject
           reject();
         }
@@ -497,7 +457,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`15: ${e.message}`);
+          console.log(`doWaitSelector: ${e.message}`);
           // reject
           reject();
         }
@@ -510,15 +470,14 @@ export class Scrape {
     return new Promise(async (resolve, reject) => {
       try {
         // wait for time
-        await Scrape.page.waitForNavigation({ waitUntil: 'networkidle0', timeout: time });
-        // resolved
+        await Scrape.page.waitForNavigation({ waitUntil: 'networkidle2', timeout: time });
         resolve();
 
       } catch (e: unknown) {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`16: ${e.message}`);
+          console.log(`doWaitForNav: ${e.message}`);
           // reject
           reject();
         }
@@ -539,7 +498,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`17: ${e.message}`);
+          console.log(`doCheckSelector: ${e.message}`);
           // reject
           reject(false);
         }
@@ -560,7 +519,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`18: ${e.message}`);
+          console.log(`doClose: ${e.message}`);
           // reject
           reject();
         }
@@ -581,7 +540,7 @@ export class Scrape {
         // if type is error
         if (e instanceof Error) {
           // error
-          console.log(`19: ${e.message}`);
+          console.log(`doReload: ${e.message}`);
           // reject
           reject();
         }
@@ -598,5 +557,30 @@ export class Scrape {
   // get result
   get getSucceed(): boolean {
     return this._result;
+  }
+}
+
+// get chrome absolute path
+const getChromePath = (): string => {
+  // chrome tmp path
+  const tmpPath: string = path.join(USER_ROOT_PATH, CHROME_EXEC_PATH3);
+
+  // 32bit
+  if (fs.existsSync(CHROME_EXEC_PATH1)) {
+    return CHROME_EXEC_PATH1 ?? '';
+
+    // 64bit
+  } else if (fs.existsSync(CHROME_EXEC_PATH2)) {
+    return CHROME_EXEC_PATH2 ?? '';
+
+    // user path
+  } else if (fs.existsSync(tmpPath)) {
+    return tmpPath ?? '';
+
+    // error
+  } else {
+    // error logging
+    console.log('getChromePath: no chrome path error');
+    return '';
   }
 }
