@@ -1,10 +1,10 @@
 /**
  * record.ts
  **
- * function：音声合成
+ * function：record audio
 **/
 
-// モジュール
+// modules
 import path from 'path'; // path
 import iconv from 'iconv-lite'; // Text converter
 import * as stream from 'stream';
@@ -13,10 +13,9 @@ import axios from 'axios';
 import log4js from 'log4js'; // logger
 import { createWriteStream, promises, existsSync } from 'fs'; // fs
 
-// ポート
+// port
 const PORT: number = 5000;
 const HOSTNAME: string = '127.0.0.1';
-//const HOSTNAME: string = '192.168.43.177';
 
 // pipe
 const finished = promisify(stream.finished);
@@ -39,43 +38,43 @@ log4js.configure({
 });
 const logger: any = log4js.getLogger();
 
-// ファイルシステム
+// file system
 const { readFile, readdir, mkdir, rm } = promises;
 
-// 音声合成リクエスト
+// synthesis audio
 const synthesisRequest = async (filename: string, text: string, outDir: string): Promise<string> => {
     return new Promise(async (resolve, reject) => {
         try {
             logger.debug(`${filename} started.`);
-            // パラメータ
+            // parameter
             const params: any = {
-                text: text, // 変換するテキスト(※必須)
-                encoding: 'utf-8', // 文字コード
-                model_id: 2, // 使用するモデルのID
-                speaker_id: 0, // 話者のID
-                // speaker_name: '', // 話者の名前(speaker_idより優先)
-                sdp_ratio: 0.2, // SDPとDPの混合比率
-                noise: 0.6, // サンプルノイズの割合（ランダム性増加）
-                noisew: 0.8, // SDPノイズの割合（発音間隔のばらつき増加）
-                length: 1.1, // 話速（1が標準）
-                language: 'JP', // テキストの言語
-                auto_split: true, // 自動でテキストを分割するかどうか
-                split_interval: 2, // 分割した際の無音区間の長さ（秒）
-                assist_text_weight: 1.0, // 補助テキストの影響の強さ
-                style: 'Neutral', // 音声のスタイル
-                style_weight: 5.0, // スタイルの強さ
-                // reference_audio_path: '', // スタイルを音声ファイルで行う
+                text: text,
+                encoding: 'utf-8',
+                model_id: 2,
+                speaker_id: 0,
+                // speaker_name: '',
+                sdp_ratio: 0.2,
+                noise: 0.6,
+                noisew: 0.8,
+                length: 1.1,
+                language: 'JP',
+                auto_split: true,
+                split_interval: 2,
+                assist_text_weight: 1.0,
+                style: 'Neutral',
+                style_weight: 5.0,
+                // reference_audio_path: '',
             }
 
-            // クエリ
+            // query
             const query: any = new URLSearchParams(params);
-            // リクエストURL
+            // requestURL
             const tmpUrl: string = `http://${HOSTNAME}:${PORT}/voice?${query}`;
-            // リクエストURL
+            // file path
             const filePath: string = path.join(outDir, filename);
-            // リクエストURL
+            // file writer
             const writer = createWriteStream(filePath);
-            // GETリクエスト
+            // GET request
             await axios({
                 method: 'get',
                 url: tmpUrl,
@@ -99,28 +98,28 @@ const synthesisRequest = async (filename: string, text: string, outDir: string):
 // main
 (async () => {
     try {
-        // 開始
         logger.info('operation started.');
 
-        // サブディレクトリ一覧
+        // subdir list
         const allDirents: any = await readdir('tmp/', { withFileTypes: true });
         const dirNames: any[] = allDirents.filter((dirent: any) => dirent.isDirectory()).map(({ name }: any) => name);
 
         if (dirNames) {
-            // フォルダ内ファイルループ
+            // loop
             await Promise.all(dirNames.map(async (tmps: string): Promise<void> => {
                 return new Promise(async (resolve0, reject0) => {
                     try {
-                        // 削除対象パス
+                        // delete path
                         const delFilePath: string = path.join(__dirname, 'tmp', tmps);
                         logger.debug(`deleting ${tmps}`);
+                        // delete file
                         await rm(delFilePath, { recursive: true });
                         resolve0();
 
                     } catch (e: unknown) {
                         if (e instanceof Error) {
                             logger.error(e.message);
-                            // エラー
+                            // error
                             reject0();
                         }
                     }
@@ -131,75 +130,75 @@ const synthesisRequest = async (filename: string, text: string, outDir: string):
             logger.debug('no directory in /tmp.');
         }
 
-        // ファイル一覧
+        // file list
         const files: string[] = await readdir('txt/');
 
-        // フォルダ内ファイルループ
+        // loop
         await Promise.all(files.map(async (fl: string): Promise<void> => {
             return new Promise(async (resolve1, reject1) => {
                 try {
                     logger.debug(`operating ${fl}`);
-                    // 一時ファイル名リスト
+                    // filename list
                     let tmpFileNameArray: string[] = [];
-                    // ファイル名
+                    // filename
                     const fileName: string = path.parse(fl).name;
                     // ID
                     const fileId: string = fileName.slice(0, 5);
-                    // 保存先パス
+                    // save path
                     const outDirPath: string = path.join(__dirname, 'tmp', fileId);
-                    // 保存先生成
+                    // make dir
                     if (!existsSync(outDirPath)) {
                         await mkdir(outDirPath);
                         logger.debug(`finished making.. ${outDirPath}`);
                     }
-                    // ファイルパス
+                    // file path
                     const filePath: string = path.join(__dirname, 'txt', fl);
-                    // ファイル読み込み
+                    // file reading
                     const txtdata: Buffer = await readFile(filePath);
-                    // デコード
+                    // decode
                     const str: string = iconv.decode(txtdata, 'UTF8');
                     logger.debug('char decoding finished.');
-                    // 改行コードで分割
+                    // split on \r\n
                     const strArray: string[] = str.split(/\r\n/);
 
-                    // 音声化
+                    // loop
                     await Promise.all(strArray.map(async (st: string, index: number): Promise<void> => {
                         return new Promise(async (resolve2, reject2) => {
                             try {
-                                // 一時ファイル名
+                                // tmpfile
                                 let tmpFileName: string = '';
 
-                                // テキストなし
+                                // no text error
                                 if (st.trim().length == 0) {
                                     throw new Error('err: no length');
                                 }
                                 logger.debug(`synthesizing .. ${st}`);
-                                // インデックス
+                                // index
                                 const paddedIndex1: string = index.toString().padStart(3, '0');
 
-                                // 500文字以上
+                                // over 500 char
                                 if (st.length > 500) {
-                                    // 改行コードで分割
+                                    // split on 。
                                     const subStrArray: string[] = st.split(/。/);
-                                    // 音声化
+                                    // make audio
                                     await Promise.all(subStrArray.map(async (sb: string, idx: number): Promise<void> => {
                                         return new Promise(async (resolve3, reject3) => {
                                             try {
-                                                // インデックス
+                                                // index
                                                 const paddedIndex2: string = idx.toString().padStart(3, '0');
-                                                // ファイル名
+                                                // filename
                                                 tmpFileName = `${fileId}-${paddedIndex1}${paddedIndex2}.wav`;
-                                                // 音声リクエスト
+                                                // synthesis request
                                                 await synthesisRequest(tmpFileName, sb, outDirPath);
-                                                // リスト追加
+                                                // add to filelist
                                                 tmpFileNameArray.push(tmpFileName);
-                                                // 完了
+                                                // complete
                                                 resolve3();
 
                                             } catch (e: unknown) {
                                                 if (e instanceof Error) {
                                                     logger.error(e.message);
-                                                    // エラー
+                                                    // error
                                                     reject3();
                                                 }
                                             }
@@ -207,44 +206,44 @@ const synthesisRequest = async (filename: string, text: string, outDir: string):
                                     }));
 
                                 } else {
-                                    // ファイル名
+                                    // filename
                                     tmpFileName = `${fileId}-${paddedIndex1}.wav`;
-                                    // 音声リクエスト
+                                    // synthesis request
                                     await synthesisRequest(tmpFileName, st, outDirPath);
-                                    // リスト追加
+                                    // add to list
                                     tmpFileNameArray.push(tmpFileName);
                                 }
                                 logger.debug(`${tmpFileName} finished.`);
-                                // 完了
+                                // complete
                                 resolve2();
 
                             } catch (e: unknown) {
                                 if (e instanceof Error) {
                                     logger.error(e.message);
-                                    // エラー
+                                    // error
                                     reject2();
                                 }
                             }
                         });
                     }));
-                    // 完了
+                    // complete
                     resolve1();
 
                 } catch (e: unknown) {
                     if (e instanceof Error) {
                         logger.error(e.message);
-                        // エラー
+                        // error
                         reject1();
                     }
                 }
             });
         }));
-        // 完了
+        // complete
         logger.info('operation finished.');
 
     } catch (e: unknown) {
         if (e instanceof Error) {
-            // エラー
+            // error
             logger.error(e.message);
         }
     }

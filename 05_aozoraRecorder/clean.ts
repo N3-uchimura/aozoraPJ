@@ -1,7 +1,7 @@
 /**
- * record.ts
+ * clean.ts
  **
- * function：record audios
+ * function：clean
 **/
 
 // modules
