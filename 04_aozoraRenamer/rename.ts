@@ -1,10 +1,10 @@
 /**
  * rename.ts
  **
- * function：txtリネーム
+ * function：txt rename
 **/
 
-// モジュール
+// modules
 import path from 'path'; // path
 import iconv from 'iconv-lite'; // Text converter
 import log4js from 'log4js'; // logger
@@ -12,10 +12,10 @@ import Encoding from 'encoding-japanese';
 import { promises } from 'fs'; // fs
 import { setTimeout } from 'node:timers/promises'; // wait for seconds
 
-// Logger config
+// Log path
 const prefix: string = `logs/${(new Date().toJSON().slice(0, 10))}.log`
 
-// ロガー設定
+// logger setting
 log4js.configure({
     appenders: {
         out: { type: 'stdout' },
@@ -27,113 +27,111 @@ log4js.configure({
 });
 const logger: any = log4js.getLogger();
 
-// ファイルシステム
+// file system
 const { readFile, readdir, rename } = promises;
 
 // main
 (async () => {
     try {
-        // ファイル一覧
+        // file list
         const files: string[] = await readdir('txt/');
 
-        // 全ループ
+        // promise
         await Promise.all(files.map((fl: string, idx: number): Promise<void> => {
             return new Promise(async (resolve1, reject1) => {
                 try {
-                    // ファイル名
+                    // file name
                     let newFileName: string = '';
-                    // ファイルパス
+                    // file path
                     const filePath: string = path.join(__dirname, 'txt', fl);
-                    // リネーム後パス
+                    // renamed path
                     const renamePath: string = path.join(__dirname, 'renamed');
-                    // ファイル読み込み
+                    // file reading
                     const txtdata: Buffer = await readFile(filePath);
-                    // 文字コード検出
+                    // char encode
                     const detectedEncoding: string | boolean = Encoding.detect(txtdata);
                     logger.info('charcode: ' + detectedEncoding);
-                    // 文字列以外エラー
+                    // if not string
                     if (typeof (detectedEncoding) !== 'string') {
                         throw new Error('error-encoding');
                     }
-                    // デコード
+                    // char decode
                     const str: string = iconv.decode(txtdata, detectedEncoding);
                     logger.debug('char decoding finished.');
-                    // wait for time
+                    // wait for 1sec
                     await setTimeout(1000);
-                    // 改行コードで分割
+                    // split on \r\n
                     const strArray: string[] = str.split(/\r\n/);
-                    // タイトル
+                    // title
                     const titleStr: string = strArray[0];
-                    // サブタイトル
+                    // subtitle
                     const subTitleStr: string = strArray[1];
-                    // 著者
+                    // author
                     const authorStr: string = strArray[2];
-                    // インデックス
-                    const paddedIndex: string = (idx+8189).toString().padStart(5, '0');
+                    // index
+                    const paddedIndex: string = (idx + 8189).toString().padStart(5, '0');
 
                     if (!authorStr) {
-                        // ファイル名
+                        // filename
                         newFileName = path.join(renamePath, `${paddedIndex}_${titleStr}_${subTitleStr}.txt`);
 
                     } else {
-                        // ファイル名
+                        // filename
                         newFileName = path.join(renamePath, `${paddedIndex}_${titleStr}_${subTitleStr}_${authorStr}.txt`);
                     }
 
-                    // ファイル名使用不可文字除去
+                    // prohibit symbol
                     const notSymbol: string[] = ['\\', '/', ':', '*', '?', '"', '<', '>', '|'];
 
-                    // 一時文字列
+                    // tmp
                     let tmpStr: string = '';
 
-                    // 全ループ
+                    // loop
                     await Promise.all(notSymbol.map((symb: string): Promise<void> => {
                         return new Promise(async (resolve2, reject2) => {
                             try {
-                                // 一時保存
+                                // tmp
                                 tmpStr = newFileName;
 
-                                // ファイル名に使用不可文字使用
+                                // include symbol
                                 if (newFileName.includes(symb)) {
                                     tmpStr = tmpStr.replace(symb, '');
                                 }
-                                // 加工後文字列
+                                // result
                                 resolve2();
 
                             } catch (e: unknown) {
                                 if (e instanceof Error) {
                                     logger.error(e.message);
-                                    //reject();
                                 }
                             }
                         });
                     }));
 
                     if (tmpStr.length < 255) {
-                        // リネーム
+                        // rename
                         await rename(filePath, tmpStr);
-                        // wait for time
+                        // wait for 1sec
                         await setTimeout(1000);
 
-                        // 完了
+                        // result
                         resolve1();
                     }
 
                 } catch (e: unknown) {
                     if (e instanceof Error) {
-                        //logger.error(e.message);
-                        //reject();
+                        logger.error(e.message);
                     }
                 }
             });
         }));
-        // 完了
+        // result
         logger.info('operation finished.');
 
     } catch (e: unknown) {
         if (e instanceof Error) {
-            // エラー
-            //logger.error(e.message);
+            // error
+            logger.error(e.message);
         }
     }
 })();

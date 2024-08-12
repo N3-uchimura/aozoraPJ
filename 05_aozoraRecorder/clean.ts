@@ -1,10 +1,10 @@
 /**
  * record.ts
  **
- * function：音声合成
+ * function：record audios
 **/
 
-// モジュール
+// modules
 import path from 'path'; // path
 import log4js from 'log4js'; // logger
 import ffmpeg from 'fluent-ffmpeg'; // ffmpeg
@@ -24,57 +24,59 @@ log4js.configure({
 });
 const logger: any = log4js.getLogger();
 
-// ファイルシステム
+// file system
 const { readdir } = promises;
 
 // main
 (async () => {
     try {
-        // サブディレクトリ一覧
+        // subdir list
         const allDirents: any = await readdir('tmp/', { withFileTypes: true });
         const dirNames: any[] = allDirents.filter((dirent: any) => dirent.isDirectory()).map(({ name }: any) => name);
 
-        // フォルダ内ループ
+        // loop
         await Promise.all(dirNames.map(async (dir: any): Promise<void> => {
             return new Promise(async (resolve1, reject1) => {
                 try {
-                    // 対象パス
+                    // target dir path
                     const targetDir: string = path.join(__dirname, 'tmp', dir);
-                    // サブディレクトリ内ファイル一覧
+                    // file list in subfolder
                     const audioFiles: string[] = (await readdir(targetDir)).filter((ad: string) => path.parse(ad).ext == '.wav');
 
-                    // ファイルパス一覧
+                    // filepath list
                     const filePaths: any[] = audioFiles.map((fl: string) => {
                         return path.join(__dirname, 'tmp', dir, fl);
 
                     });
 
-                    // DLパス
+                    // DL path
                     const downloadDir: string = path.join(__dirname, 'backup');
-                    // 出力パス
+                    // output path
                     const outputPath: string = path.join(__dirname, 'download', `${dir}.wav`);
 
                     // ffmpeg
                     let mergedVideo: any = ffmpeg();
 
-                    // 合体
+                    // merge
                     await Promise.all(filePaths.map(async (path: string): Promise<void> => {
                         return new Promise(async (resolve2, reject2) => {
                             try {
+                                // merged video
                                 mergedVideo = mergedVideo.mergeAdd(path);
+                                // complete
                                 resolve2();
 
                             } catch (e: unknown) {
                                 if (e instanceof Error) {
                                     logger.error(e.message);
-                                    // エラー
+                                    // error
                                     reject2();
                                 }
                             }
                         });
                     }));
 
-                    // 音声合体
+                    // merge
                     mergedVideo.mergeToFile(outputPath, downloadDir)
                         .on('error', (err: unknown) => {
                             if (err instanceof Error) {
@@ -84,24 +86,23 @@ const { readdir } = promises;
                         .on('end', function () {
                             logger.debug(`${dir}.wav  merge finished.`);
                         });
-                    // 完了
+                    // result
                     resolve1();
 
                 } catch (e: unknown) {
                     if (e instanceof Error) {
                         logger.error(e.message);
-                        // エラー
+                        // error
                         reject1();
                     }
                 }
             });
         }));
-        // 完了
         logger.info('operation finished.');
 
     } catch (e: unknown) {
         if (e instanceof Error) {
-            // エラー
+            // error
             logger.error(e.message);
         }
     }

@@ -1,15 +1,15 @@
 /**
  * extract.ts
  **
- * function：テキスト抽出
+ * function：text extractor
 **/
 
-// モジュール
+// module
 import path from 'path'; // path
-import log4js from 'log4js'; // ロガー
+import log4js from 'log4js'; // logger
 import { promises } from 'fs'; // fs
 
-// ロガー設定
+// logger setting
 log4js.configure({
     appenders: {
         out: { type: 'stdout' },
@@ -21,38 +21,38 @@ log4js.configure({
 });
 const logger: any = log4js.getLogger();
 
-// ファイルシステム
+// file system
 const { copyFile, readdir } = promises;
 
-// メイン
+// main
 (async () => {
     try {
-        // ファイル一覧
+        // file list
         const files: string[] = await readdir('source/');
 
-        // 全ループ
+        // loop file
         await Promise.all(files.map((fl: string): Promise<void> => {
             return new Promise(async (resolve1, reject1) => {
                 try {
-                    // ファイルパス
+                    // file path
                     const filePath: string = path.join(__dirname, 'source', fl);
-                    // ファイル一覧
+                    // 
                     const texts: string[] = await readdir(filePath);
-                    // 全ループ
+                    // loop line
                     await Promise.all(texts.map((txt: string): Promise<void> => {
                         return new Promise(async (resolve2, reject2) => {
                             try {
-                                // 拡張子
+                                // extension
                                 const extension: string = path.extname(txt);
 
-                                // テキストのみ
+                                // when txt
                                 if (extension == '.txt') {
-                                    // 出力ファイルパス
+                                    // output path
                                     const outPath: string = path.join(__dirname, 'extracted', texts[0]);
-                                    // コピー
+                                    // copy
                                     await copyFile(path.join(__dirname, 'source', fl, texts[0]), outPath);
                                 }
-                                // 完了
+                                // complete
                                 resolve2();
 
                             } catch (e: unknown) {
@@ -63,7 +63,7 @@ const { copyFile, readdir } = promises;
 
                         })
                     }))
-                    // 結果
+                    // result
                     resolve1();
 
                 } catch (e: unknown) {
@@ -73,12 +73,12 @@ const { copyFile, readdir } = promises;
                 }
             })
         }));
-        // 完了
+        // complete
         logger.info('operation finished.');
 
     } catch (e: unknown) {
         if (e instanceof Error) {
-            // エラー
+            // error
             logger.error(e.message);
         }
     }

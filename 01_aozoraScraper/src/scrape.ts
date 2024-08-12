@@ -4,11 +4,11 @@
  * function：Node.js server
  **/
 
-// 定数
+// const
 const FIRST_BOOK_ROWS: number = 1;
 const FIRST_PAGE_ROWS: number = 2;
 const MAX_PAGE_ROWS: number = 52;
-const DEF_AOZORA_URL: string = 'https://www.aozora.gr.jp/index_pages/sakuhin_'; // スクレイピング対象サイトルート
+const DEF_AOZORA_URL: string = 'https://www.aozora.gr.jp/index_pages/sakuhin_'; // scraping root
 
 // import modules
 import { BrowserWindow, app, ipcMain, dialog, Tray, Menu, nativeImage } from 'electron'; // electron
@@ -16,18 +16,18 @@ import * as path from 'path'; // path
 import { Scrape } from './class/Scrape0804'; // scraper
 import ELLogger from './class/MyLogger0301el'; // logger
 
-// 成功数
+// success
 let successCounter: number = 0;
-// 失敗数
+// faile
 let failCounter: number = 0;
-// ログ設定np
+// loggeer instance
 const logger: ELLogger = new ELLogger('../../logs', 'access');
-// スクレイピング用
+// scraper
 const puppScraper: Scrape = new Scrape();
-// zipリンク)
+// zip linkselector
 const zipLinkSelector: string = 'body > table.download > tbody > tr:nth-child(2) > td:nth-child(3) > a';
 
-// リンク集
+// links
 const linkSelection: any = Object.freeze({
     あ: 'a',
     い: 'i',
@@ -78,7 +78,7 @@ const linkSelection: any = Object.freeze({
     A: 'zz',
 });
 
-// リンク集
+// links number
 const numSelection: any = Object.freeze({
     あ: 21,
     い: 10,
@@ -128,248 +128,246 @@ const numSelection: any = Object.freeze({
 })
 
 /*
- メイン
+ main
 */
-// ウィンドウ定義
+// main window
 let mainWindow: Electron.BrowserWindow;
-// 起動確認フラグ
+// quit flg
 let isQuiting: boolean;
 
-// ウィンドウ作成
+// create main window
 const createWindow = (): void => {
     try {
-        // ウィンドウ
+        // window
         mainWindow = new BrowserWindow({
-            width: 1200, // 幅
-            height: 1000, // 高さ
+            width: 1200, // width
+            height: 1000, // height
             webPreferences: {
-                nodeIntegration: false, // Node.js利用許可
-                contextIsolation: true, // コンテキスト分離
-                preload: path.join(__dirname, 'preload.js'), // プリロード
+                nodeIntegration: false, // Node.js use
+                contextIsolation: true, // isolate context
+                preload: path.join(__dirname, 'preload.js'), // preload
             },
         });
 
-        // index.htmlロード
+        // index.html load
         mainWindow.loadFile(path.join(__dirname, '../index.html'));
-        // 準備完了
+        // ready
         mainWindow.once('ready-to-show', () => {
-            // 開発モード
+            // dev mode
             //mainWindow.webContents.openDevTools();
         });
 
-        // 最小化のときはトレイ常駐
+        // stay at tray
         mainWindow.on('minimize', (event: any): void => {
-            // キャンセル
+            // avoid Wclick
             event.preventDefault();
-            // ウィンドウを隠す
+            // hide window
             mainWindow.hide();
-            // falseを返す
+            // returnfalse
             event.returnValue = false;
         });
 
-        // 閉じる
+        // close window
         mainWindow.on('close', (event: any): void => {
-            // 起動中
+            // not closing
             if (!isQuiting) {
-                // apple以外
+                // without apple
                 if (process.platform !== 'darwin') {
-                    // falseを返す
+                    // return false
                     event.returnValue = false;
                 }
             }
         });
 
-        // ウィンドウが閉じたら後片付けする
+        // closing
         mainWindow.on('closed', (): void => {
-            // ウィンドウをクローズ
+            // destroy window
             mainWindow.destroy();
         });
 
     } catch (e: unknown) {
-        // エラー処理
+        // error
         logger.debug('err: electron thread');
-        // エラー
+        // error
         logger.error(e);
     }
 }
 
-// サンドボックス有効化
+// enable sandbox
 app.enableSandbox();
 
-// 処理開始
+// main app
 app.on('ready', async () => {
     logger.info('app: electron is ready');
-    // ウィンドウを開く
+    // create window
     createWindow();
-    // アイコン
+    // icons
     const icon: Electron.NativeImage = nativeImage.createFromPath(path.join(__dirname, '../assets/aozora.ico'));
-    // トレイ
+    // tray
     const mainTray: Electron.Tray = new Tray(icon);
-    // コンテキストメニュー
+    // context menu
     const contextMenu: Electron.Menu = Menu.buildFromTemplate([
-        // 表示
+        // show
         {
-            label: '表示', click: () => {
+            label: 'show', click: () => {
                 mainWindow.show();
             }
         },
-        // 閉じる
+        // close
         {
-            label: '閉じる', click: () => {
+            label: 'close', click: () => {
                 app.quit();
             }
         }
     ]);
-    // コンテキストメニューセット
+    // context menu
     mainTray.setContextMenu(contextMenu);
-    // ダブルクリックで再表示
+    // Wclick reopen
     mainTray.on('double-click', () => mainWindow.show());
 });
 
-// 起動時
+// activate
 app.on('activate', () => {
-    // 起動ウィンドウなし
+    // no window
     if (BrowserWindow.getAllWindows().length === 0) {
-        // 再起動
+        // reload
         createWindow();
     }
 });
 
-// 閉じるボタン
+// close
 app.on('before-quit', () => {
-    // 閉じるフラグ
+    // turn on close flg
     isQuiting = true;
 });
 
-// 終了
+// end
 app.on('window-all-closed', () => {
     logger.info('app: close app');
-    // 閉じる
+    // exit
     app.quit();
 });
 
 /*
  IPC
 */
-// スクレイピング
+// scraping
 ipcMain.on('scrape', async (event: any, _: any) => {
     try {
         logger.info('ipc: scrape mode');
 
-        // スクレイパー初期化
+        // init scraper
         await puppScraper.init();
 
         // URL
         for await (const [key, value] of Object.entries(linkSelection)) {
             try {
                 logger.debug(`process: getting ${key} 行`);
-                // 対象数
+                // loop number
                 const childLength: number = numSelection[key];
 
-                // 開始位置が最大数より小さい
+                // within total 
                 if (childLength >= FIRST_BOOK_ROWS) {
                     logger.debug(`total is ${childLength}`);
-                    // 合計取得数更新
+                    // update total
                     event.sender.send('total', childLength * 50);
-                    // 取得中URL
+                    // now URL
                     event.sender.send('pageUpdate', `${key} 行`);
                     logger.debug('doPageScrape mode');
 
-                    // ループ用
+                    // for loop
                     const nums: number[] = makeNumberRange(FIRST_BOOK_ROWS, childLength + 1);
 
-                    // データあり
+                    // loop
                     for await (const j of nums) {
                         try {
-                            // 対象URL
+                            // URL
                             const aozoraUrl: string = `${DEF_AOZORA_URL}${value}${j}.html`;
                             logger.debug(`process: scraping ${aozoraUrl}`);
-                            // トップへ
+                            // move to top
                             await puppScraper.doGo(aozoraUrl);
-                            // 1秒ウェイト
+                            // wait 1 sec
                             await puppScraper.doWaitFor(1000);
-                            // 詳細ページ
                             logger.debug('doUrlScrape mode');
-                            // ループ用
+                            // loop number
                             const links: number[] = makeNumberRange(FIRST_PAGE_ROWS, MAX_PAGE_ROWS);
 
-                            // 収集ループ
+                            // loop
                             for await (const k of links) {
                                 try {
-                                    // セレクタ
+                                    // selector
                                     const finalLinkSelector: string = `body > center > table.list > tbody > tr:nth-child(${k}) > td:nth-child(2) > a`;
-                                    // 2秒ウェイト
+                                    // wait for 2sec
                                     await puppScraper.doWaitFor(2000);
 
-                                    // 対象が存在する
+                                    // selector exists
                                     if (await puppScraper.doCheckSelector(finalLinkSelector)) {
                                         logger.debug(`process: downloading No.${k - 1}`);
                                         // wait and click
                                         await Promise.all([
-                                            // 1秒ウェイト
+                                            // wait 1sec
                                             await puppScraper.doWaitFor(1000),
                                             // url
                                             await puppScraper.doClick(finalLinkSelector),
-                                            // 2秒ウェイト
+                                            // wait 2sec
                                             await puppScraper.doWaitFor(2000),
                                         ]);
                                         // get href
                                         const zipHref: string = await puppScraper.getHref(zipLinkSelector);
-                                        // 対象url
                                         logger.debug(zipHref);
 
                                         if (zipHref.includes('.zip')) {
                                             await Promise.all([
-                                                // 1秒ウェイト
+                                                // wait for 1sec
                                                 await puppScraper.doWaitFor(1000),
                                                 // wait for datalist
                                                 await puppScraper.doWaitSelector(zipLinkSelector, 3000),
-                                                // zipダウンロード
+                                                // download zip
                                                 await puppScraper.doClick(zipLinkSelector),
-                                                // 3秒ウェイト
+                                                // wait for 3sec
                                                 await puppScraper.doWaitFor(3000),
-                                                // 前に戻る
+                                                // goback
                                                 await puppScraper.doGoBack(),
                                             ]);
-                                            // 成功
+                                            // success
                                             successCounter++;
 
                                         } else {
-                                            // 結果
+                                            // error
                                             logger.error('err4: not zip file');
                                             throw new Error('err4: not zip file');
                                         }
 
                                     } else {
-                                        // 結果
+                                        // error
                                         logger.debug('err4: no download link');
                                         throw new Error('err4: no download link');
                                     }
 
                                 } catch (e: unknown) {
-                                    // エラー
+                                    // error
                                     logger.debug('err4: download thread loop');
                                     logger.error(e);
-                                    // 失敗
+                                    // fail
                                     failCounter++;
-                                    // 前に戻る
+                                    // goback
                                     await puppScraper.doGoBack();
 
                                 } finally {
-                                    // 取得中URL
+                                    // URL
                                     event.sender.send('statusUpdate', `process: downloading No.${k - 1}`);
-                                    // 合計取得数更新
+                                    // update total
                                     event.sender.send('update', {
                                         success: successCounter,
                                         fail: failCounter,
                                     });
                                 }
                             }
-                            // 1秒ウェイト
+                            // wait for 1sec
                             await puppScraper.doWaitFor(1000);
 
                         } catch (e: unknown) {
-                            // エラー
+                            // error
                             logger.debug('err3: scrape thread loop');
                             logger.error(e);
                         }
@@ -378,106 +376,106 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                 }
 
             } catch (e: unknown) {
-                // エラー処理
+                // error
                 logger.debug('err1: main thread loop');
                 logger.error(e);
             }
         }
-        // 終了メッセージ
-        showmessage('info', '取得が終わりました');
+        // end message
+        showmessage('info', 'completed.');
 
 
     } catch (e: unknown) {
-        // エラー処理
+        // error
         logger.debug('err1: main thread');
         logger.error(e);
 
 
     } finally {
-        // スクレイパー閉じる
+        // close scraper
         await puppScraper.doClose();
     }
 });
 
-// スクレイピング停止
+// exit
 ipcMain.on('exit', async () => {
     try {
         logger.info('ipc: exit mode');
-        // 質問項目
+        // message
         const options: Electron.MessageBoxSyncOptions = {
             type: 'question',
-            title: '質問',
-            message: '終了',
-            detail: '終了してよろしいですか？これまでのデータは破棄されます。',
-            buttons: ['はい', 'いいえ'],
-            cancelId: -1, // Escで閉じられたときの戻り値
+            title: 'question',
+            message: 'exit',
+            detail: 'exit? data is exposed',
+            buttons: ['yes', 'no'],
+            cancelId: -1, // Esc
         }
-        // 選んだ選択肢
+        // selection
         const selected: number = dialog.showMessageBoxSync(options);
 
-        // はいを選択
+        // when yes
         if (selected == 0) {
-            // 閉じる
+            // close
             app.quit();
         }
 
     } catch (e: unknown) {
-        // エラー処理
+        // error
         logger.debug('err2: exit thread');
         logger.error(e);
     }
 });
 
-// メッセージ表示
+// show message
 const showmessage = async (type: string, message: string): Promise<void> => {
     try {
         logger.info('module: showmessage mode');
-        // モード
+        // mode
         let tmpType: 'none' | 'info' | 'error' | 'question' | 'warning' | undefined;
-        // タイトル
+        // title
         let tmpTitle: string | undefined;
 
-        // urlセット
+        // url
         switch (type) {
-            // 通常モード
+            // info
             case 'info':
                 tmpType = 'info';
-                tmpTitle = '情報';
+                tmpTitle = 'info';
                 break;
 
-            // エラーモード
+            // error
             case 'error':
                 tmpType = 'error';
-                tmpTitle = 'エラー';
+                tmpTitle = 'error';
                 break;
 
-            // 警告モード
+            // warn
             case 'warning':
                 tmpType = 'warning';
-                tmpTitle = '警告';
+                tmpTitle = 'warning';
                 break;
 
-            // それ以外
+            // other
             default:
                 tmpType = 'none';
                 tmpTitle = '';
         }
 
-        // オプション
+        // option
         const options: Electron.MessageBoxOptions = {
-            type: tmpType, // タイプ
-            message: tmpTitle, // メッセージタイトル
-            detail: message,  // 説明文
+            type: tmpType, // type
+            message: tmpTitle, // title
+            detail: message,  // explanation
         }
-        // ダイアログ表示
+        // showdialog
         dialog.showMessageBox(options);
 
     } catch (e: unknown) {
-        // エラー
+        // error
         logger.debug('err5: show message thread');
         logger.error(e);
     }
 }
 
-// 数字配列
+// number array
 const makeNumberRange = (start: number, end: number) => [...new Array(end - start).keys()].map(n => n + start);

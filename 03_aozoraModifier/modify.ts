@@ -1,10 +1,10 @@
 /**
  * modify.ts
  **
- * function：テキスト整形
+ * function：modify text
 **/
 
-// モジュール
+// modules
 import path from 'path'; // path
 import log4js from 'log4js'; // logger
 import { promises } from 'fs'; // fs
@@ -12,7 +12,7 @@ import iconv from 'iconv-lite'; // Text converter
 import Encoding from 'encoding-japanese';
 import { toDakuon } from 'kanadaku';
 
-// ロガー設定
+// logger setting
 log4js.configure({
     appenders: {
         out: { type: 'stdout' },
@@ -24,27 +24,27 @@ log4js.configure({
 });
 const logger: any = log4js.getLogger();
 
-// ファイルシステム
+// file system
 const { rename, readFile, writeFile, readdir } = promises;
 
-// 結果型
+// removed
 interface removed {
     header: string;
     body: string;
 }
 
-// 注釈除去
+// remove annotation
 const removeAnnotation = (str: string): Promise<removed | string> => {
     return new Promise(async (resolve, reject) => {
         try {
-            // 注釈区切り
+            // annotation distinction
             const annotation: string = '-------------------------------------------------------';
 
-            // 注釈除去
+            // remove
             if (str.includes(annotation)) {
-                // 分割
+                // split
                 const result: string[] = str.split(annotation);
-                // 結果
+                // complete
                 resolve({
                     header: result[0],
                     body: str.split(annotation)[2],
@@ -54,7 +54,7 @@ const removeAnnotation = (str: string): Promise<removed | string> => {
 
         } catch (e: unknown) {
             if (e instanceof Error) {
-                // エラー
+                // error
                 logger.error(e.message);
                 reject('error');
             }
@@ -62,23 +62,23 @@ const removeAnnotation = (str: string): Promise<removed | string> => {
     });
 }
 
-// フッタ除去
+// remove footer
 const removeFooter = (str: string): Promise<string> => {
     return new Promise(async (resolve, reject) => {
         try {
-            // 底本区切り
+            // distinction
             const annotation: string = '底本：';
-            // 注釈除去
+            // remove footer
             if (str.includes(annotation)) {
-                // 分割
+                // split
                 const result: string[] = str.split(annotation);
-                // 結果
+                // result
                 resolve(result[0]);
             }
 
         } catch (e: unknown) {
             if (e instanceof Error) {
-                // エラー
+                // error
                 logger.error(e.message);
                 reject('error');
             }
@@ -86,16 +86,16 @@ const removeFooter = (str: string): Promise<string> => {
     });
 }
 
-// ルビ(《》)除去
+// remove ruby(《》)
 const removeRuby = (str: string): Promise<string> => {
     return new Promise(async (resolve, reject) => {
         try {
-            // 結果
+            // result
             resolve(str.replace(/《.+?》/g, ''));
 
         } catch (e: unknown) {
             if (e instanceof Error) {
-                // エラー
+                // error
                 logger.error(e.message);
                 reject('error');
             }
@@ -103,16 +103,16 @@ const removeRuby = (str: string): Promise<string> => {
     });
 }
 
-// かっこ([])除去
+// remove brackets([])
 const removeBrackets = (str: string): Promise<string> => {
     return new Promise(async (resolve, reject) => {
         try {
-            // 結果
+            // result
             resolve(str.replace(/［＃.*］/g, ''));
 
         } catch (e: unknown) {
             if (e instanceof Error) {
-                // エラー
+                // error
                 logger.error(e.message);
                 reject('error');
             }
@@ -120,38 +120,38 @@ const removeBrackets = (str: string): Promise<string> => {
     });
 }
 
-// 反復文字
+// remove repeat signs
 const repeatCharacter = async (str: string): Promise<string> => {
     return new Promise(async (resolve1, reject1) => {
         try {
-            // 一時保存
+            // tmp
             let tmpStr: string = str;
-            // |除去
+            // remove repeat signs
             const shortSymbols: string[] = ['ゝ', 'ゞ', '／＼', '／″＼'];
 
-            // 処理
+            // promise
             await Promise.all(shortSymbols.map(async (smb: string): Promise<void> => {
                 return new Promise(async (resolve2, reject2) => {
                     try {
-                        // 置換文字長
+                        // str length
                         let strLen: number = 0;
-                        // 文字位置
+                        // matched
                         let matchedStr: string = '';
 
-                        // 含まれる場合
+                        // if include
                         if (tmpStr.includes(smb)) {
 
-                            // 濁音のとき
+                            // when voiced
                             if (smb == '／″＼') {
-                                // 置換文字長
+                                // str length
                                 strLen = 2;
 
                             } else {
-                                // 置換文字長
+                                // str length
                                 strLen = smb.length;
                             }
 
-                            // 置換文字長が2文字以上
+                            // str length is over 2
                             if (strLen > 1) {
                                 matchedStr = '.{2}';
 
@@ -159,47 +159,47 @@ const repeatCharacter = async (str: string): Promise<string> => {
                                 matchedStr = '.';
                             }
 
-                            // 正規表現
+                            // regexp
                             const regex: RegExp = new RegExp(matchedStr + smb, 'g');
-                            // マッチ部分
+                            // match part
                             const match = tmpStr.match(regex);
 
-                            // マッチあり
+                            // if match
                             if (match) {
-                                // 全処理
+                                // promise
                                 await Promise.all(match.map(async (mp: string): Promise<void> => {
                                     return new Promise(async (resolve3, reject3) => {
                                         try {
-                                            // 直前の文字列
+                                            // just before
                                             let previousChar = '';
-                                            // マッチした文字列
+                                            // matched char
                                             let hitChar = '';
 
-                                            // 濁音対応
+                                            // voiced
                                             if (smb == '／″＼') {
-                                                // 直前の文字列
+                                                // just before
                                                 previousChar = toDakuon(mp.substring(0, strLen));
-                                                // マッチした文字列
+                                                // matched char
                                                 hitChar = mp.substring(strLen, strLen * 2 + 1);
 
                                             } else {
-                                                // 直前の文字列
+                                                // just before
                                                 previousChar = mp.substring(0, strLen);
-                                                // マッチした文字列
+                                                // matched char
                                                 hitChar = mp.substring(strLen, strLen * 2);
                                             }
-                                            // 置換処理
+                                            // replace
                                             const replaced: string = mp.replace(hitChar, previousChar);
-                                            // 全体置換
+                                            // replaced string
                                             tmpStr = tmpStr.replace(mp, replaced);
 
-                                            // 結果
+                                            // result
                                             resolve3();
 
                                         } catch (e: unknown) {
                                             if (e instanceof Error) {
                                                 logger.error(e.message);
-                                                // エラー
+                                                // error
                                                 reject3();
                                             }
                                         }
@@ -207,29 +207,28 @@ const repeatCharacter = async (str: string): Promise<string> => {
                                 }));
 
                             } else {
-                                //throw new Error('指定した文字列が見つかりません。');
-                                logger.error('指定した文字列が見つかりません。');
+                                logger.error('not found');
                             }
                         }
-                        // 結果
+                        // result
                         resolve2();
 
                     } catch (e: unknown) {
                         if (e instanceof Error) {
                             logger.error(e.message);
-                            // エラー
+                            // error
                             reject2();
                         }
                     }
                 });
             }));
-            // 結果
+            // result
             resolve1(tmpStr);
 
         } catch (e: unknown) {
             if (e instanceof Error) {
                 logger.error(e.message);
-                // エラー
+                // error
                 reject1('error');
             }
         }
