@@ -3,7 +3,7 @@ Scraping Aozora books (https://www.aozora.gr.jp/) and fix them to usable text an
 
 ### Projects
 1. aozoraScraper  
-Get all book raw data from "青空文庫([http://keiba.no.coocan.jp](https://www.aozora.gr.jp/))"
+Get all books raw data from "青空文庫([http://keiba.no.coocan.jp](https://www.aozora.gr.jp/))"
 downloaded files are written out to zip  
 
 2. aozoraExtractor
