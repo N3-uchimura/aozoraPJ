@@ -16,4 +16,4 @@ Remove unnecessary strings, and make them recordable form.
 Rename filenames to 'title-author-editor-index.txt'.
 
 5. aozoraRecorder
-Make them convert to .wav data at all once with Style-Bert-VITS2([https://github.com/litagin02/Style-Bert-VITS2]}.
+Make them convert to .wav data at all once with [Style-Bert-VITS2](https://github.com/litagin02/Style-Bert-VITS2).
