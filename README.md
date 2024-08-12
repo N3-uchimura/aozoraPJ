@@ -6,14 +6,14 @@ Scraping Aozora books (https://www.aozora.gr.jp/) and fix them to usable text an
 Get all books raw data from [https://www.aozora.gr.jp/](https://www.aozora.gr.jp/)).  
 Downloaded files are written out to zip  
 
-2. aozoraExtractor
+2. aozoraExtractor  
 After unzipping, extract text files to one directory.
 
-3. aozoraModifier
+3. aozoraModifier  
 Remove unnecessary strings, and make them recordable form.
 
-4. aozoraRenamer
+4. aozoraRenamer  
 Rename filenames to 'title-author-editor-index.txt'.
 
-5. aozoraRecorder
+5. aozoraRecorder  
 Make them convert to .wav data at all once with [Style-Bert-VITS2](https://github.com/litagin02/Style-Bert-VITS2).
