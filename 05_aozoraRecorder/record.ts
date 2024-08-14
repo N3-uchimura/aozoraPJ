@@ -88,7 +88,7 @@ const synthesisRequest = async (filename: string, text: string, outDir: string):
 
         } catch (e: unknown) {
             if (e instanceof Error) {
-                // エラー
+                // error
                 reject('error');
             }
         }
