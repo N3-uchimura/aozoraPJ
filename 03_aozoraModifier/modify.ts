@@ -4,6 +4,8 @@
  * function：modify text
 **/
 
+'use strict';
+
 // modules
 import path from 'path'; // path
 import log4js from 'log4js'; // logger

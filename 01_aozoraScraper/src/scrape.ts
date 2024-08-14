@@ -4,6 +4,8 @@
  * function：Node.js server
  **/
 
+'use strict';
+
 // const
 const FIRST_BOOK_ROWS: number = 1;
 const FIRST_PAGE_ROWS: number = 2;

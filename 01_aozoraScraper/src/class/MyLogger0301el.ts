@@ -6,6 +6,8 @@
  * updated: 2024/03/01
  **/
 
+'use strict';
+
 // define modules
 import * as path from 'path'; // path
 import logger from 'electron-log'; // Logger

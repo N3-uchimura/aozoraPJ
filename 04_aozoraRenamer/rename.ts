@@ -4,6 +4,8 @@
  * function：txt rename
 **/
 
+'use strict';
+
 // modules
 import path from 'path'; // path
 import iconv from 'iconv-lite'; // Text converter

@@ -4,6 +4,8 @@
  * function：text extractor
 **/
 
+'use strict';
+
 // module
 import path from 'path'; // path
 import log4js from 'log4js'; // logger

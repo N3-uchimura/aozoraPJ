@@ -4,6 +4,8 @@
  * function：ipcBridge
 **/
 
+'use strict';
+
 // module
 import { contextBridge, ipcRenderer } from 'electron'; // electron
 
