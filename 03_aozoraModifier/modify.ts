@@ -235,40 +235,40 @@ const repeatCharacter = async (str: string): Promise<string> => {
     });
 }
 
-// 不要文字除去
+// remove symbols
 const removeSymbols = (str: string): Promise<string> => {
     return new Promise(async (resolve1, reject1) => {
         try {
-            // 一時保存
+            // tmp
             let tmpStr: string = str;
-            // 除去対象
+            // symbols
             const symbols: string[] = ['｜', '――'];
-            // 除去
+            // removal
             await Promise.all(symbols.map((syb: string): Promise<void> => {
                 return new Promise(async (resolve2, reject2) => {
                     try {
-                        // 正規表現
+                        // regexp
                         const regStr: RegExp = new RegExp(syb, 'g');
-                        // 除去処理
+                        // replaced
                         tmpStr = tmpStr.replace(regStr, '');
-                        // 結果
+                        // result
                         resolve2();
 
                     } catch (e: unknown) {
                         if (e instanceof Error) {
-                            // エラー
+                            // error
                             reject2();
                         }
                     }
                 })
             }));
-            // 結果
+            // result
             resolve1(tmpStr);
 
         } catch (e: unknown) {
             if (e instanceof Error) {
                 logger.error(e.message);
-                // エラー
+                // error
                 reject1('error');
             }
         }
@@ -278,39 +278,39 @@ const removeSymbols = (str: string): Promise<string> => {
 // main
 (async () => {
     try {
-        // ファイル一覧
+        // file list
         const files: string[] = await readdir('txt/');
 
-        // 全ループ
+        // loop for files
         await Promise.all(files.map((fl: string): Promise<void> => {
             return new Promise(async (resolve, reject) => {
                 try {
                     let finalStr: any;
-                    // ファイルパス
+                    // filepath
                     const filePath: string = path.join(__dirname, 'txt', fl);
-                    // 完了ファイルパス
+                    // filepath completed
                     const fileCompPath: string = path.join(__dirname, 'txt', 'complete', fl);
-                    // ファイルパス
+                    // filepath output
                     const outPath: string = path.join(__dirname, 'modify', fl);
-                    // ファイル読み込み
+                    // read files
                     const txtdata = await readFile(filePath);
-                    // 文字コード検出
+                    // detect charcode
                     const detectedEncoding: string | boolean = Encoding.detect(txtdata);
                     logger.info('charcode: ' + detectedEncoding);
-                    // 文字列以外エラー
+                    // without string
                     if (typeof (detectedEncoding) !== 'string') {
                         throw new Error('error-encoding');
                     }
-                    // デコード
+                    // decode
                     const str = iconv.decode(txtdata, detectedEncoding);
                     logger.debug('char decoding finished.');
-                    // 反復処理
+                    // repeat strings
                     const removedStr0: string = await repeatCharacter(str);
                     if (removedStr0 == 'error') {
                         logger.error('0: none');
                     }
                     logger.debug('0: finished');
-                    // 注釈除去
+                    // annotations
                     const removedStr1: any = await removeAnnotation(removedStr0);
                     if (typeof (removedStr1) == 'string') {
                         logger.error('error1');
@@ -322,37 +322,37 @@ const removeSymbols = (str: string): Promise<string> => {
                         finalStr = removedStr1;
                     }
                     logger.debug('1: finished');
-                    // フッタ除去
+                    // remove footer
                     const removedStr2: string = await removeFooter(finalStr.body);
                     if (removedStr2 == 'error') {
                         logger.error('error2');
                     }
                     logger.debug('2: finished');
-                    // ルビ(《》)除去
+                    // remove ryby(《》)
                     const removedStr3: string = await removeRuby(removedStr2);
                     if (removedStr3 == 'error') {
                         logger.error('error3');
                     }
                     logger.debug('3: finished');
-                    // かっこ([])除去
+                    // remove angle bracket([])
                     const removedStr4: string = await removeBrackets(removedStr3);
                     if (removedStr4 == 'error') {
                         logger.error('error4');
                     }
                     logger.debug('4: finished');
-                    // 不要文字除去
+                    // remove unnecessary string
                     const removedStr5: string = await removeSymbols(removedStr4);
                     if (removedStr5 == 'error') {
                         logger.error('error5');
                     }
                     logger.debug('5: finished');
 
-                    // 書き出し
+                    // write out to file
                     await writeFile(outPath, removedStr1.header + removedStr5);
-                    // 完了フォルダに移動
+                    // move to complete dir
                     await rename(filePath, fileCompPath);
                     logger.info('writing finished.');
-                    // 結果
+                    // result
                     resolve();
 
                 } catch (e: unknown) {
@@ -363,12 +363,12 @@ const removeSymbols = (str: string): Promise<string> => {
                 }
             })
         }));
-        // 完了
+        // result
         logger.info('operation finished.');
 
     } catch (e: unknown) {
         if (e instanceof Error) {
-            // エラー
+            // error
             logger.error(e.message);
         }
     }

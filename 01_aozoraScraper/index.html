@@ -3,31 +3,31 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>青空文庫スクレイピングツール</title>
+  <title>Aozora Scraping Tool</title>
   <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';">
   <link rel="stylesheet" href="css/index.css">
 </head>
 
 <body>
-  <h1>書籍スクレイピング画面</h1>
+  <h1>Aozora Scraper</h1>
   <div class="wrapper">
     <div class="button_area">
       <div class="operation_area">
-        <h3>スクレイピング</h3>
-        <div><button class="button-g button-wide button-2" value="edit" onclick="gotoScrape();">スクレイピング開始</button></div>
-        <div><button class="button-g button-wide" onclick="pauseScrape();">スクレイピング終了</button></div>
+        <h3>Scraping</h3>
+        <div><button class="button-g button-wide button-2" value="edit" onclick="gotoScrape();">Start</button></div>
+        <div><button class="button-g button-wide" onclick="pauseScrape();">End</button></div>
       </div>
       <div class="progressarea">
-        <div>成功:<span id="success"></span>/<span id="successtotal"></span></div>
-        <div>失敗:<span id="fail"></span>/<span id="failtotal"></span></div>
+        <div>Success:<span id="success"></span>/<span id="successtotal"></span></div>
+        <div>Fail:<span id="fail"></span>/<span id="failtotal"></span></div>
       </div>
       <div class="operation_area">
-        <h3>ステータス</h3>
+        <h3>Status</h3>
         <div id="scrapingpage"></div>
         <div id="scrapingstatus"></div>
       </div>
       <div class="operation_area">
-        <div><button class="button-g button-4 button-wide" value="exit" onclick="exitApp();">終了</button></div>
+        <div><button class="button-g button-4 button-wide" value="exit" onclick="exitApp();">Exit</button></div>
       </div>
     </div>
   </div>
@@ -37,100 +37,100 @@
   </footer>
 
   <script>
-    // 対象行
+    // target page
     const scrapingpageDom = document.getElementById('scrapingpage');
-    // ステータス
+    // status
     const scrapingstatusDom = document.getElementById('scrapingstatus');
-    // 進捗表示
+    // success
     const successDom = document.getElementById('success');
-    // 進捗表示
+    // fail
     const failDom = document.getElementById('fail');
-    // 合計表示
+    // success total
     const successtotalDom = document.getElementById('successtotal');
-    // 合計表示
+    // fail total
     const failtotalDom = document.getElementById('failtotal');
 
-    // 合計数
+    // total
     window.api.on('total', arg => {
       try {
-        // 成功合計数
+        // success total
         successtotalDom.innerHTML = arg;
-        // 失敗合計数
+        // fail total
         failtotalDom.innerHTML = arg;
 
       } catch (e) {
-        // エラー処理
+        // error
         console.log(e);
       }
     });
 
-    // 成功進捗更新
+    // update
     window.api.on('update', arg => {
       try {
         console.log(arg);
-        // 成功数
+        // success
         successDom.innerHTML = arg.success;
-        // 失敗数
+        // fail
         failDom.innerHTML = arg.fail;
 
       } catch (e) {
-        // エラー処理
+        // error
         console.log(e);
       }
     });
 
-    // ステータス更新
+    // update status
     window.api.on('statusUpdate', arg => {
       try {
-        // ステータス表示
+        // status 
         scrapingstatusDom.innerHTML = `
-          スクレイピング中: ${arg}`;
+          scraping: ${arg}`;
 
       } catch (e) {
-        // エラー処理
+        // error
         console.log(e);
       }
     });
 
-    // ステータス更新
+    // status update
     window.api.on('pageUpdate', arg => {
       try {
-        // ステータス表示
+        // status
         scrapingpageDom.innerHTML = `
-          対象: ${arg}`;
+          target: ${arg}`;
 
       } catch (e) {
-        // エラー処理
+        // error
         console.log(e);
       }
     });
 
-    // スクレイピング開始
+    // start scraping
     const gotoScrape = () => {
       try {
-        // フォーム初期化
+        // initialize form
         successDom.innerHTML = '';
         failDom.innerHTML = '';
         successtotalDom.innerHTML = '';
         failtotalDom.innerHTML = '';
         scrapingstatusDom.innerHTML = '';
-        // スクレイピング
+        // scrape
         window.api.send('scrape', '');
 
       } catch (e) {
-        // エラー処理
+        // error
         console.log(e);
       }
     }
 
-    // アプリ終了
+    // exit
     const exitApp = () => {
       try {
-        // アプリ終了
+        // exit app
         window.api.send('exit');
 
       } catch (e) {
-        // エラー処理
+        // error
         console.log(e);
       }
     }
