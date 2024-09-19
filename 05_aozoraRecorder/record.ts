@@ -91,6 +91,7 @@ const synthesisRequest = async (filename: string, text: string, outDir: string):
         } catch (e: unknown) {
             if (e instanceof Error) {
                 // error
+                logger.error(e.message);
                 reject('error');
             }
         }
@@ -136,9 +137,9 @@ const synthesisRequest = async (filename: string, text: string, outDir: string):
                         await rm(delFilePath, { recursive: true });
                         resolve0();
 
-                    } catch (e: unknown) {
-                        if (e instanceof Error) {
-                            logger.error(e.message);
+                    } catch (err: unknown) {
+                        if (err instanceof Error) {
+                            logger.error(err.message);
                             // error
                             reject0();
                         }
@@ -215,9 +216,9 @@ const synthesisRequest = async (filename: string, text: string, outDir: string):
                                                 // complete
                                                 resolve3();
 
-                                            } catch (e: unknown) {
-                                                if (e instanceof Error) {
-                                                    logger.error(e.message);
+                                            } catch (err1: unknown) {
+                                                if (err1 instanceof Error) {
+                                                    logger.error(err1.message);
                                                     // error
                                                     reject3();
                                                 }
@@ -237,9 +238,9 @@ const synthesisRequest = async (filename: string, text: string, outDir: string):
                                 // complete
                                 resolve2();
 
-                            } catch (e: unknown) {
-                                if (e instanceof Error) {
-                                    logger.error(e.message);
+                            } catch (err2: unknown) {
+                                if (err2 instanceof Error) {
+                                    logger.error(err2.message);
                                     // error
                                     reject2();
                                 }
@@ -249,9 +250,9 @@ const synthesisRequest = async (filename: string, text: string, outDir: string):
                     // complete
                     resolve1();
 
-                } catch (e: unknown) {
-                    if (e instanceof Error) {
-                        logger.error(e.message);
+                } catch (err3: unknown) {
+                    if (err3 instanceof Error) {
+                        logger.error(err3.message);
                         // error
                         reject1();
                     }

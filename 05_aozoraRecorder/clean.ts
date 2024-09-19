@@ -68,9 +68,9 @@ const { readdir } = promises;
                                 // complete
                                 resolve2();
 
-                            } catch (e: unknown) {
-                                if (e instanceof Error) {
-                                    logger.error(e.message);
+                            } catch (err1: unknown) {
+                                if (err1 instanceof Error) {
+                                    logger.error(err1.message);
                                     // error
                                     reject2();
                                 }
@@ -80,9 +80,9 @@ const { readdir } = promises;
 
                     // merge
                     mergedVideo.mergeToFile(outputPath, downloadDir)
-                        .on('error', (err: unknown) => {
-                            if (err instanceof Error) {
-                                logger.error(err.message);
+                        .on('error', (err2: unknown) => {
+                            if (err2 instanceof Error) {
+                                logger.error(err2.message);
                             }
                         })
                         .on('end', function () {
@@ -91,9 +91,9 @@ const { readdir } = promises;
                     // result
                     resolve1();
 
-                } catch (e: unknown) {
-                    if (e instanceof Error) {
-                        logger.error(e.message);
+                } catch (error: unknown) {
+                    if (error instanceof Error) {
+                        logger.error(error.message);
                         // error
                         reject1();
                     }
