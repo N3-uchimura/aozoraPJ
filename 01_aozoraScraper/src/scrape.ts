@@ -188,10 +188,12 @@ const createWindow = (): void => {
         });
 
     } catch (e: unknown) {
-        // error
-        logger.debug('err: electron thread');
-        // error
-        logger.error(e);
+        if (e instanceof Error) {
+            // error
+            logger.debug('err: electron thread');
+            // error
+            logger.error(e);
+        }
     }
 }
 
@@ -346,14 +348,16 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                                         throw new Error('err4: no download link');
                                     }
 
-                                } catch (e: unknown) {
-                                    // error
-                                    logger.debug('err4: download thread loop');
-                                    logger.error(e);
-                                    // fail
-                                    failCounter++;
-                                    // goback
-                                    await puppScraper.doGoBack();
+                                } catch (err1: unknown) {
+                                    if (err1 instanceof Error) {
+                                        // error
+                                        logger.debug('err4: download thread loop');
+                                        logger.error(err1);
+                                        // fail
+                                        failCounter++;
+                                        // goback
+                                        await puppScraper.doGoBack();
+                                    }
 
                                 } finally {
                                     // URL
@@ -368,19 +372,23 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                             // wait for 1sec
                             await puppScraper.doWaitFor(1000);
 
-                        } catch (e: unknown) {
-                            // error
-                            logger.debug('err3: scrape thread loop');
-                            logger.error(e);
+                        } catch (err2: unknown) {
+                            if (err2 instanceof Error) {
+                                // error
+                                logger.debug('err3: scrape thread loop');
+                                logger.error(err2);
+                            }
                         }
                     }
 
                 }
 
-            } catch (e: unknown) {
-                // error
-                logger.debug('err1: main thread loop');
-                logger.error(e);
+            } catch (err3: unknown) {
+                if (err3 instanceof Error) {
+                    // error
+                    logger.debug('err1: main thread loop');
+                    logger.error(err3);
+                }
             }
         }
         // end message
@@ -388,10 +396,11 @@ ipcMain.on('scrape', async (event: any, _: any) => {
 
 
     } catch (e: unknown) {
-        // error
-        logger.debug('err1: main thread');
-        logger.error(e);
-
+        if (e instanceof Error) {
+            // error
+            logger.debug('err1: main thread');
+            logger.error(e);
+        }
 
     } finally {
         // close scraper
@@ -422,9 +431,11 @@ ipcMain.on('exit', async () => {
         }
 
     } catch (e: unknown) {
-        // error
-        logger.debug('err2: exit thread');
-        logger.error(e);
+        if (e instanceof Error) {
+            // error
+            logger.debug('err2: exit thread');
+            logger.error(e);
+        }
     }
 });
 
@@ -473,9 +484,11 @@ const showmessage = async (type: string, message: string): Promise<void> => {
         dialog.showMessageBox(options);
 
     } catch (e: unknown) {
-        // error
-        logger.debug('err5: show message thread');
-        logger.error(e);
+        if (e instanceof Error) {
+            // error
+            logger.debug('err5: show message thread');
+            logger.error(e);
+        }
     }
 }
 

@@ -198,9 +198,9 @@ const repeatCharacter = async (str: string): Promise<string> => {
                                             // result
                                             resolve3();
 
-                                        } catch (e: unknown) {
-                                            if (e instanceof Error) {
-                                                logger.error(e.message);
+                                        } catch (err1: unknown) {
+                                            if (err1 instanceof Error) {
+                                                logger.error(err1.message);
                                                 // error
                                                 reject3();
                                             }
@@ -215,9 +215,9 @@ const repeatCharacter = async (str: string): Promise<string> => {
                         // result
                         resolve2();
 
-                    } catch (e: unknown) {
-                        if (e instanceof Error) {
-                            logger.error(e.message);
+                    } catch (err2: unknown) {
+                        if (err2 instanceof Error) {
+                            logger.error(err2.message);
                             // error
                             reject2();
                         }
@@ -227,9 +227,9 @@ const repeatCharacter = async (str: string): Promise<string> => {
             // result
             resolve1(tmpStr);
 
-        } catch (e: unknown) {
-            if (e instanceof Error) {
-                logger.error(e.message);
+        } catch (err3: unknown) {
+            if (err3 instanceof Error) {
+                logger.error(err3.message);
                 // error
                 reject1('error');
             }
@@ -256,8 +256,9 @@ const removeSymbols = (str: string): Promise<string> => {
                         // result
                         resolve2();
 
-                    } catch (e: unknown) {
-                        if (e instanceof Error) {
+                    } catch (err: unknown) {
+                        if (err instanceof Error) {
+                            logger.error(err.message);
                             // error
                             reject2();
                         }
@@ -285,7 +286,7 @@ const removeSymbols = (str: string): Promise<string> => {
 
         // loop for files
         await Promise.all(files.map((fl: string): Promise<void> => {
-            return new Promise(async (resolve, reject) => {
+            return new Promise(async (resolve, _) => {
                 try {
                     let finalStr: any;
                     // filepath
@@ -357,10 +358,9 @@ const removeSymbols = (str: string): Promise<string> => {
                     // result
                     resolve();
 
-                } catch (e: unknown) {
-                    if (e instanceof Error) {
-                        logger.error(e.message);
-                        //reject();
+                } catch (err: unknown) {
+                    if (err instanceof Error) {
+                        logger.error(err.message);
                     }
                 }
             })

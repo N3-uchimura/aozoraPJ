@@ -40,7 +40,7 @@ const { readFile, readdir, rename } = promises;
 
         // promise
         await Promise.all(files.map((fl: string, idx: number): Promise<void> => {
-            return new Promise(async (resolve1, reject1) => {
+            return new Promise(async (resolve1, _) => {
                 try {
                     // file name
                     let newFileName: string = '';
@@ -90,7 +90,7 @@ const { readFile, readdir, rename } = promises;
 
                     // loop
                     await Promise.all(notSymbol.map((symb: string): Promise<void> => {
-                        return new Promise(async (resolve2, reject2) => {
+                        return new Promise(async (resolve2, _) => {
                             try {
                                 // tmp
                                 tmpStr = newFileName;
@@ -102,9 +102,9 @@ const { readFile, readdir, rename } = promises;
                                 // result
                                 resolve2();
 
-                            } catch (e: unknown) {
-                                if (e instanceof Error) {
-                                    logger.error(e.message);
+                            } catch (error: unknown) {
+                                if (error instanceof Error) {
+                                    logger.error(error.message);
                                 }
                             }
                         });
@@ -120,9 +120,9 @@ const { readFile, readdir, rename } = promises;
                         resolve1();
                     }
 
-                } catch (e: unknown) {
-                    if (e instanceof Error) {
-                        logger.error(e.message);
+                } catch (err: unknown) {
+                    if (err instanceof Error) {
+                        logger.error(err.message);
                     }
                 }
             });

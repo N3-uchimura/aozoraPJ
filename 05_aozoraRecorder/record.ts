@@ -102,6 +102,24 @@ const synthesisRequest = async (filename: string, text: string, outDir: string):
     try {
         logger.info('operation started.');
 
+        // make dir
+        if (!existsSync('./tmp')) {
+            await mkdir('./tmp');
+            logger.debug(`finished making.. ./tmp`);
+        }
+
+        // make dir
+        if (!existsSync('./txt')) {
+            await mkdir('./txt');
+            logger.debug(`finished making.. ./txt`);
+        }
+
+        // make dir
+        if (!existsSync('./logs')) {
+            await mkdir('./logs');
+            logger.debug(`finished making.. ./logs`);
+        }
+
         // subdir list
         const allDirents: any = await readdir('tmp/', { withFileTypes: true });
         const dirNames: any[] = allDirents.filter((dirent: any) => dirent.isDirectory()).map(({ name }: any) => name);

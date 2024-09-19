@@ -57,8 +57,10 @@ const { copyFile, readdir } = promises;
                                 // complete
                                 resolve2();
 
-                            } catch (e: unknown) {
-                                if (e instanceof Error) {
+                            } catch (err1: unknown) {
+                                if (err1 instanceof Error) {
+                                    // error
+                                    logger.error(err1.message);
                                     reject2();
                                 }
                             }
@@ -68,8 +70,10 @@ const { copyFile, readdir } = promises;
                     // result
                     resolve1();
 
-                } catch (e: unknown) {
-                    if (e instanceof Error) {
+                } catch (err2: unknown) {
+                    if (err2 instanceof Error) {
+                        // error
+                        logger.error(err2.message);
                         reject1();
                     }
                 }
