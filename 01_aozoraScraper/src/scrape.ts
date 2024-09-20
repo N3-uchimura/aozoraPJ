@@ -192,7 +192,7 @@ const createWindow = (): void => {
             // error
             logger.debug('err: electron thread');
             // error
-            logger.error(e);
+            logger.error(e.message);
         }
     }
 }
@@ -352,7 +352,7 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                                     if (err1 instanceof Error) {
                                         // error
                                         logger.debug('err4: download thread loop');
-                                        logger.error(err1);
+                                        logger.error(err1.message);
                                         // fail
                                         failCounter++;
                                         // goback
@@ -376,7 +376,7 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                             if (err2 instanceof Error) {
                                 // error
                                 logger.debug('err3: scrape thread loop');
-                                logger.error(err2);
+                                logger.error(err2.message);
                             }
                         }
                     }
@@ -387,7 +387,7 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                 if (err3 instanceof Error) {
                     // error
                     logger.debug('err1: main thread loop');
-                    logger.error(err3);
+                    logger.error(err3.message);
                 }
             }
         }
@@ -399,7 +399,7 @@ ipcMain.on('scrape', async (event: any, _: any) => {
         if (e instanceof Error) {
             // error
             logger.debug('err1: main thread');
-            logger.error(e);
+            logger.error(e.message);
         }
 
     } finally {
@@ -434,7 +434,7 @@ ipcMain.on('exit', async () => {
         if (e instanceof Error) {
             // error
             logger.debug('err2: exit thread');
-            logger.error(e);
+            logger.error(e.message);
         }
     }
 });
@@ -487,7 +487,7 @@ const showmessage = async (type: string, message: string): Promise<void> => {
         if (e instanceof Error) {
             // error
             logger.debug('err5: show message thread');
-            logger.error(e);
+            logger.error(e.message);
         }
     }
 }
