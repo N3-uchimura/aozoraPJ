@@ -3,7 +3,7 @@ Scraping Aozora books (https://www.aozora.gr.jp/) and fix them to usable text an
 
 ### Projects
 1. aozoraScraper  
-Get all books raw data from [https://www.aozora.gr.jp/](https://www.aozora.gr.jp/)).  
+Get all books raw data from [https://www.aozora.gr.jp/](https://www.aozora.gr.jp/).  
 Downloaded files are written out to zip  
 
 2. aozoraExtractor  
