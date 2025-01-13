@@ -1,7 +1,7 @@
 /**
- * clean.ts
+ * finalize.ts
  **
- * function：clean
+ * function：finalize
 **/
 
 'use strict';
