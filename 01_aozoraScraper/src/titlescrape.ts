@@ -287,7 +287,7 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                     logger.debug('doPageScrape mode');
 
                     // for loop
-                    const nums: number[] = makeNumberRange(FIRST_BOOK_ROWS, FIRST_BOOK_ROWS + 1);
+                    const nums: number[] = makeNumberRange(FIRST_BOOK_ROWS, childLength + 1);
 
                     // loop
                     for await (const i of nums) {
