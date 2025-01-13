@@ -3,11 +3,11 @@ Scraping Aozora books (https://www.aozora.gr.jp/) and fix them to usable text an
 
 ### Projects
 1. aozoraScraper  
-scrape.ts: (npm start)  
+- scrape.ts: (npm start)  
 Get all books raw data from [https://www.aozora.gr.jp/](https://www.aozora.gr.jp/).  
 Downloaded files are written out to zip  
- 
-scrapetitle.ts: (npm run title)  
+
+- scrapetitle.ts: (npm run title)  
 Get all books title data from [https://www.aozora.gr.jp/](https://www.aozora.gr.jp/).  
 Downloaded files are written out to csv  
 
