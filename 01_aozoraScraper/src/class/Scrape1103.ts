@@ -3,16 +3,9 @@
  *
  * class：Scrape
  * function：scraping site
- * updated: 2024/08/04
+ * updated: 2024/11/03
  **/
 
-'use strict';
-
-// constants
-const USER_ROOT_PATH: string = process.env[process.platform == "win32" ? "USERPROFILE" : "HOME"] ?? ''; // user path
-const CHROME_EXEC_PATH1: string = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'; // chrome.exe path1
-const CHROME_EXEC_PATH2: string = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'; // chrome.exe path2
-const CHROME_EXEC_PATH3: string = '\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe'; // chrome.exe path3
 const DISABLE_EXTENSIONS: string = "--disable-extensions"; // disable extension
 const ALLOW_INSECURE: string = "--allow-running-insecure-content"; // allow insecure content
 const IGNORE_CERT_ERROR: string = "--ignore-certificate-errors"; // ignore cert-errors
@@ -27,20 +20,10 @@ const DEF_USER_AGENT: string =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36"; // useragent
 
 // define modules
-import * as fs from "fs"; // fs
-import * as path from "path"; // path
 import { setTimeout } from 'node:timers/promises'; // wait for seconds
-import puppeteer from "puppeteer-core"; // Puppeteer for scraping
+import puppeteer from "puppeteer"; // Puppeteer for scraping
 
 //* Interfaces
-// puppeteer options
-interface puppOption {
-  headless: boolean; // display mode
-  executablePath: string; // chrome.exe path
-  ignoreDefaultArgs: string[]; // ignore extensions
-  args: string[]; // args
-}
-
 // class
 export class Scrape {
   static browser: any; // static browser
@@ -61,10 +44,10 @@ export class Scrape {
   init(): Promise<void> {
     return new Promise(async (resolve, reject) => {
       try {
-        const puppOptions: puppOption = {
+        const puppOptions: any = {
           headless: true, // no display mode
-          executablePath: getChromePath(), // chrome.exe path
-          ignoreDefaultArgs: [DISABLE_EXTENSIONS], // ignore extensions
+          ignoreDefaultArgs: [], // ignore extensions
+          /*
           args: [
             NO_SANDBOX,
             DISABLE_SANDBOX,
@@ -76,6 +59,7 @@ export class Scrape {
             IGNORE_CERT_ERROR,
             MAX_SCREENSIZE,
           ], // args
+          */
         };
         // lauch browser
         Scrape.browser = await puppeteer.launch(puppOptions);
@@ -83,7 +67,7 @@ export class Scrape {
         Scrape.page = await Scrape.browser.newPage();
         // set viewport
         Scrape.page.setViewport({
-          width: 1920,
+          width: 1000,
           height: 1000,
         });
         // mimic agent
@@ -98,6 +82,25 @@ export class Scrape {
           console.log(`init: ${e.message}`);
           // reject
           reject();
+        }
+      }
+    });
+  }
+
+  // get page url
+  getUrl(): Promise<string> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // resolved
+        resolve(await Scrape.page.url());
+
+      } catch (e: unknown) {
+        // if type is error
+        if (e instanceof Error) {
+          // error
+          console.log(`getTitle: ${e.message}`);
+          // reject
+          reject(e.message);
         }
       }
     });
@@ -168,12 +171,6 @@ export class Scrape {
       try {
         // goto target page
         await Scrape.page.goto(targetPage);
-        // get page height
-        const height = await Scrape.page.evaluate(() => {
-          return document.body.scrollHeight;
-        });
-        // body height
-        this._height = height;
         // resolved
         resolve();
 
@@ -341,33 +338,20 @@ export class Scrape {
   doSingleEval(selector: string, property: string): Promise<string> {
     return new Promise(async (resolve, reject) => {
       try {
-        // target item
-        const exists: boolean = await Scrape.page.$eval(selector, () => true).catch(() => false);
+        // target value
+        const item: any = await Scrape.page.$(selector);
 
-        // no result
-        if (!exists) {
-          console.log("error");
-          reject("error");
+        // if not null
+        if (item !== null) {
+          // got data
+          const data: string = await (
+            await item.getProperty(property)
+          ).jsonValue();
 
-        } else {
-          // target value
-          const item: any = await Scrape.page.$(selector);
-
-          // if not null
-          if (item !== null) {
-            // got data
-            const data: string = await (
-              await item.getProperty(property)
-            ).jsonValue();
-
-            // if got data not null
-            if (data) {
-              // resolved
-              resolve(data);
-
-            } else {
-              reject("error");
-            }
+          // if got data not null
+          if (data) {
+            // resolved
+            resolve(data);
 
           } else {
             reject("error");
@@ -401,8 +385,18 @@ export class Scrape {
         if (result) {
           // loop in list
           for (const ls of list) {
-            // push to data set
-            datas.push(await (await ls.getProperty(property)).jsonValue());
+            try {
+              // push to data set
+              datas.push(await (await ls.getProperty(property)).jsonValue());
+            } catch (e: unknown) {
+              // if type is error
+              if (e instanceof Error) {
+                // error
+                console.log(`doMultiEval: ${e.message}`);
+                // reject
+                reject(e.message);
+              }
+            }
           }
           // resolved
           resolve(datas);
@@ -559,30 +553,5 @@ export class Scrape {
   // get result
   get getSucceed(): boolean {
     return this._result;
-  }
-}
-
-// get chrome absolute path
-const getChromePath = (): string => {
-  // chrome tmp path
-  const tmpPath: string = path.join(USER_ROOT_PATH, CHROME_EXEC_PATH3);
-
-  // 32bit
-  if (fs.existsSync(CHROME_EXEC_PATH1)) {
-    return CHROME_EXEC_PATH1 ?? '';
-
-    // 64bit
-  } else if (fs.existsSync(CHROME_EXEC_PATH2)) {
-    return CHROME_EXEC_PATH2 ?? '';
-
-    // user path
-  } else if (fs.existsSync(tmpPath)) {
-    return tmpPath ?? '';
-
-    // error
-  } else {
-    // error logging
-    console.log('getChromePath: no chrome path error');
-    return '';
   }
 }

@@ -11,12 +11,17 @@ const FIRST_BOOK_ROWS: number = 1;
 const FIRST_PAGE_ROWS: number = 2;
 const MAX_PAGE_ROWS: number = 52;
 const DEF_AOZORA_URL: string = 'https://www.aozora.gr.jp/index_pages/sakuhin_'; // scraping root
+const OUTPUT_PATH: string = './output/'; // output path
 
 // import modules
 import { BrowserWindow, app, ipcMain, dialog, Tray, Menu, nativeImage } from 'electron'; // electron
 import * as path from 'path'; // path
 import { Scrape } from './class/Scrape1103'; // scraper
 import ELLogger from './class/MyLogger0301el'; // logger
+import CSV from './class/Csv1104'; // csv
+
+// csv
+const csvMaker = new CSV('SJIS');
 
 // success
 let successCounter: number = 0;
@@ -26,8 +31,6 @@ let failCounter: number = 0;
 const logger: ELLogger = new ELLogger('../../logs', 'access');
 // scraper
 const puppScraper: Scrape = new Scrape();
-// zip linkselector
-const zipLinkSelector: string = 'body > table.download > tbody > tr:nth-child(2) > td:nth-child(3) > a';
 
 // links
 const linkSelection: any = Object.freeze({
@@ -259,14 +262,18 @@ app.on('window-all-closed', () => {
 ipcMain.on('scrape', async (event: any, _: any) => {
     try {
         logger.info('ipc: scrape mode');
+        // filename
+        const fileName: string = (new Date).toISOString().replace(/[^\d]/g, "").slice(0, 8);
+
 
         // init scraper
         await puppScraper.init();
-
         // URL
         for await (const [key, value] of Object.entries(linkSelection)) {
             try {
                 logger.debug(`process: getting ${key} 行`);
+                // last array
+                let wholeArray: any = [];
                 // loop number
                 const childLength: number = numSelection[key];
 
@@ -280,88 +287,77 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                     logger.debug('doPageScrape mode');
 
                     // for loop
-                    const nums: number[] = makeNumberRange(FIRST_BOOK_ROWS, childLength + 1);
+                    const nums: number[] = makeNumberRange(FIRST_BOOK_ROWS, FIRST_BOOK_ROWS + 1);
 
                     // loop
-                    for await (const j of nums) {
+                    for await (const i of nums) {
                         try {
+                            // last array
+                            let finalArray: string[][] = [];
                             // URL
-                            const aozoraUrl: string = `${DEF_AOZORA_URL}${value}${j}.html`;
+                            const aozoraUrl: string = `${DEF_AOZORA_URL}${value}${i}.html`;
                             logger.debug(`process: scraping ${aozoraUrl}`);
                             // move to top
                             await puppScraper.doGo(aozoraUrl);
                             // wait 1 sec
                             await puppScraper.doWaitFor(1000);
                             logger.debug('doUrlScrape mode');
-                            // loop number
-                            const links: number[] = makeNumberRange(FIRST_PAGE_ROWS, MAX_PAGE_ROWS);
+                            // row loop number
+                            const rows: number[] = makeNumberRange(FIRST_PAGE_ROWS, MAX_PAGE_ROWS);
+                            // column loop number
+                            const columns: number[] = makeNumberRange(1, 6);
 
                             // loop
-                            for await (const k of links) {
+                            for await (const j of rows) {
                                 try {
-                                    // selector
-                                    const finalLinkSelector: string = `body > center > table.list > tbody > tr:nth-child(${k}) > td:nth-child(2) > a`;
-                                    // wait for 2sec
-                                    await puppScraper.doWaitFor(2000);
+                                    // tmp array
+                                    let tmpArray: string[] = [];
 
-                                    // selector exists
-                                    if (await puppScraper.doCheckSelector(finalLinkSelector)) {
-                                        logger.debug(`process: downloading No.${k - 1}`);
-                                        // wait and click
-                                        await Promise.all([
-                                            // wait 1sec
-                                            await puppScraper.doWaitFor(1000),
-                                            // url
-                                            await puppScraper.doClick(finalLinkSelector),
-                                            // wait 2sec
-                                            await puppScraper.doWaitFor(2000),
-                                        ]);
-                                        // get href
-                                        const zipHref: string = await puppScraper.getHref(zipLinkSelector);
-                                        logger.debug(zipHref);
+                                    // loop
+                                    for await (const k of columns) {
+                                        try {
+                                            // selector
+                                            let finalLinkSelector: string = `body > center > table.list > tbody > tr:nth-child(${j}) > td:nth-child(${k})`;
+                                            // when title link
+                                            if (k == 2) {
+                                                finalLinkSelector += ' > a';
+                                            }
+                                            // wait for 2sec
+                                            await puppScraper.doWaitFor(500);
 
-                                        if (zipHref.includes('.zip')) {
-                                            await Promise.all([
-                                                // wait for 1sec
-                                                await puppScraper.doWaitFor(1000),
-                                                // wait for datalist
-                                                await puppScraper.doWaitSelector(zipLinkSelector, 3000),
-                                                // download zip
-                                                await puppScraper.doClick(zipLinkSelector),
-                                                // wait for 3sec
-                                                await puppScraper.doWaitFor(3000),
-                                                // goback
-                                                await puppScraper.doGoBack(),
-                                            ]);
-                                            // success
+                                            logger.debug(`process: scraping No.${j - 1}`);
+                                            // wait and click
+                                            const targetstring: string = await puppScraper.doSingleEval(finalLinkSelector, 'innerHTML');
+                                            // set to tmparray
+                                            tmpArray.push(targetstring);
+                                            // successcounter
                                             successCounter++;
+                                            // wait 0.5 sec
+                                            await puppScraper.doWaitFor(500);
 
-                                        } else {
-                                            // error
-                                            logger.error('err4: not zip file');
-                                            throw new Error('err4: not zip file');
+                                        } catch (err1: unknown) {
+                                            if (err1 instanceof Error) {
+                                                // error
+                                                logger.debug('err1: scrape column loop');
+                                                logger.error(err1.message);
+                                            }
                                         }
-
-                                    } else {
-                                        // error
-                                        logger.debug('err4: no download link');
-                                        throw new Error('err4: no download link');
                                     }
+                                    // set to finalArray
+                                    finalArray.push(tmpArray);
 
-                                } catch (err1: unknown) {
-                                    if (err1 instanceof Error) {
+                                } catch (err2: unknown) {
+                                    if (err2 instanceof Error) {
                                         // error
-                                        logger.debug('err4: download thread loop');
-                                        logger.error(err1.message);
+                                        logger.debug('err2: scrape row loop');
+                                        logger.error(err2.message);
                                         // fail
                                         failCounter++;
-                                        // goback
-                                        await puppScraper.doGoBack();
                                     }
 
                                 } finally {
                                     // URL
-                                    event.sender.send('statusUpdate', `process: downloading No.${k - 1}`);
+                                    event.sender.send('statusUpdate', `process: scraping No.${j - 1}`);
                                     // update total
                                     event.sender.send('update', {
                                         success: successCounter,
@@ -369,25 +365,68 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                                     });
                                 }
                             }
+                            // put into wholearray
+                            wholeArray.push(finalArray);
                             // wait for 1sec
                             await puppScraper.doWaitFor(1000);
 
-                        } catch (err2: unknown) {
-                            if (err2 instanceof Error) {
+                        } catch (err3: unknown) {
+                            if (err3 instanceof Error) {
                                 // error
-                                logger.debug('err3: scrape thread loop');
-                                logger.error(err2.message);
+                                logger.debug('err3: scrape page loop');
+                                logger.error(err3.message);
                             }
                         }
-                    }
 
+                    }
+                    // csv filename
+                    const filePath: string = `${OUTPUT_PATH}${fileName}_${key}行.csv`;
+                    // header
+                    const columns: { [key: string]: string } = {
+                        number: 'No.', // number
+                        title: '作品名', // title
+                        ruby: '文字遣い種別', // ruby
+                        authorname: '著者名', // authorname
+                        authorbasename: '著者基本名', // authorbasename
+                        editor: '翻訳者名等', // editor
+                    };
+                    // finaljson
+                    let finalJsonArray: any[] = [];
+                    // all races
+                    wholeArray.forEach((books: any) => {
+                        // for training
+                        books.forEach((data: any) => {
+                            // empty array
+                            let tmpObj: { [key: string]: string } = {
+                                number: '', // number
+                                title: '', // title
+                                ruby: '', // ruby
+                                authorname: '', // authorname
+                                authorbasename: '', // authorbasename
+                                editor: '', // editor
+                            };
+                            // set each value
+                            tmpObj.number = data[0];
+                            tmpObj.title = data[1];
+                            tmpObj.ruby = data[2];
+                            tmpObj.authorname = data[3];
+                            tmpObj.authorbasename = data[4];
+                            tmpObj.editor = data[5];
+                            // set to json
+                            finalJsonArray.push(tmpObj);
+                        });
+                    });
+                    // write data
+                    await csvMaker.makeCsvData(finalJsonArray, columns, filePath);
+                    // wait for 1sec
+                    await puppScraper.doWaitFor(1000);
                 }
 
-            } catch (err3: unknown) {
-                if (err3 instanceof Error) {
+            } catch (err4: unknown) {
+                if (err4 instanceof Error) {
                     // error
-                    logger.debug('err1: main thread loop');
-                    logger.error(err3.message);
+                    logger.debug('err4: main thread loop');
+                    logger.error(err4.message);
                 }
             }
         }

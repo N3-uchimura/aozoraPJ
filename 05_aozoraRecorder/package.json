@@ -6,7 +6,9 @@
   "main": "record.ts",
   "scripts": {
     "start": "ts-node record.ts",
-    "clean": "ts-node clean.ts"
+    "finalize": "ts-node finalize.ts",
+    "status": "ts-node status.ts",
+    "model": "ts-node getmodel.ts"
   },
   "keywords": [],
   "author": "N3-uchimura <uchimura@numthree.net>",

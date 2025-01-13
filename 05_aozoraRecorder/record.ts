@@ -52,9 +52,9 @@ const synthesisRequest = async (filename: string, text: string, outDir: string):
             const params: any = {
                 text: text,
                 encoding: 'utf-8',
-                model_id: 2,
+                model_id: 0,
                 speaker_id: 0,
-                // speaker_name: '',
+                peaker_name: 'bratology',
                 sdp_ratio: 0.2,
                 noise: 0.6,
                 noisew: 0.8,
