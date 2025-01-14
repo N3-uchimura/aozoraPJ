@@ -281,7 +281,7 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                 if (childLength >= FIRST_BOOK_ROWS) {
                     logger.debug(`total is ${childLength}`);
                     // update total
-                    event.sender.send('total', childLength * 50);
+                    event.sender.send('total', childLength);
                     // now URL
                     event.sender.send('pageUpdate', `${key} 行`);
                     logger.debug('doPageScrape mode');
@@ -312,6 +312,7 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                                 try {
                                     // tmp array
                                     let tmpArray: string[] = [];
+                                    logger.debug(`process: scraping No.${j - 1}`);
 
                                     // loop
                                     for await (const k of columns) {
@@ -324,14 +325,11 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                                             }
                                             // wait for 2sec
                                             await puppScraper.doWaitFor(500);
-
-                                            logger.debug(`process: scraping No.${j - 1}`);
                                             // wait and click
                                             const targetstring: string = await puppScraper.doSingleEval(finalLinkSelector, 'innerHTML');
                                             // set to tmparray
                                             tmpArray.push(targetstring);
-                                            // successcounter
-                                            successCounter++;
+
                                             // wait 0.5 sec
                                             await puppScraper.doWaitFor(500);
 
@@ -343,6 +341,7 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                                             }
                                         }
                                     }
+
                                     // set to finalArray
                                     finalArray.push(tmpArray);
 
@@ -351,20 +350,12 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                                         // error
                                         logger.debug('err2: scrape row loop');
                                         logger.error(err2.message);
-                                        // fail
-                                        failCounter++;
-                                    }
 
-                                } finally {
-                                    // URL
-                                    event.sender.send('statusUpdate', `process: scraping No.${j - 1}`);
-                                    // update total
-                                    event.sender.send('update', {
-                                        success: successCounter,
-                                        fail: failCounter,
-                                    });
+                                    }
                                 }
                             }
+                            // successcounter
+                            successCounter++;
                             // put into wholearray
                             wholeArray.push(finalArray);
                             // wait for 1sec
@@ -375,9 +366,18 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                                 // error
                                 logger.debug('err3: scrape page loop');
                                 logger.error(err3.message);
+                                // fail
+                                failCounter++;
                             }
+                        } finally {
+                            // URL
+                            event.sender.send('statusUpdate', `process: scraping page_${i}`);
+                            // update total
+                            event.sender.send('update', {
+                                success: successCounter,
+                                fail: failCounter,
+                            });
                         }
-
                     }
                     // csv filename
                     const filePath: string = `${OUTPUT_PATH}${fileName}_${key}行.csv`;
