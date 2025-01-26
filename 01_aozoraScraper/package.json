@@ -1,0 +1,31 @@
+{
+  "name": "numthree.com.aozorascraper",
+  "productName": "aozoraScraper",
+  "version": "1.1.0",
+  "description": "Electron application for scraping",
+  "main": "build/titlescrape.js",
+  "scripts": {
+    "build": "tsc && chcp 65001",
+    "start": "npm run build && electron ./build/titlescrape.js",
+    "package-win": "tsc && chcp 65001 && electron-packager . --asar --overwrite --platform=win32 --arch=x64 --prune --icon=./assets/andbar.ico --out=release-builds --electronVersion=28.2.0"
+  },
+  "keywords": [],
+  "author": {
+    "name": "numthree-uchimura (https://github.com/N3-uchimura/)",
+    "email": "uchimura@numthree.net"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@types/node": "^20.8.9",
+    "csv": "^6.3.11",
+    "electron-log": "^5.1.0",
+    "iconv-lite": "^0.6.3",
+    "path": "^0.12.7",
+    "puppeteer": "^24.0.0",
+    "typescript": "^5.2.2"
+  },
+  "devDependencies": {
+    "electron": "^29.1.1",
+    "electron-packager": "^17.1.2"
+  }
+}

@@ -1,0 +1,10 @@
+/node_modules
+/txt
+/logs
+/source
+/download
+package-lock.json
+/backup
+/tmp
+/txtbk
+./desktop.ini
