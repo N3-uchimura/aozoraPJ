@@ -8,24 +8,17 @@
 
 // modules
 import path from 'path'; // path
-import log4js from 'log4js'; // logger
 import { promises } from 'fs'; // fs
 import iconv from 'iconv-lite'; // Text converter
 import Encoding from 'encoding-japanese';
 import { toDakuon } from 'kanadaku';
+import Logger from "./class/Logger0928"; // logger
+import MKDir from './class/Mkdir0126'; // mdkir
 
-// logger setting
-log4js.configure({
-    appenders: {
-        out: { type: 'stdout' },
-        system: { type: 'file', filename: 'logs/access.log' }
-    },
-    categories: {
-        default: { appenders: ['out', 'system'], level: 'debug' }
-    }
-});
-const logger: any = log4js.getLogger();
-
+// logger
+const logger: Logger = new Logger("./logs");
+// mkdir
+const mkdirManager = new MKDir();
 // file system
 const { rename, readFile, writeFile, readdir } = promises;
 
@@ -39,6 +32,7 @@ interface removed {
 const removeAnnotation = (str: string): Promise<removed | string> => {
     return new Promise(async (resolve, reject) => {
         try {
+
             // annotation distinction
             const annotation: string = '-------------------------------------------------------';
 
@@ -281,6 +275,8 @@ const removeSymbols = (str: string): Promise<string> => {
 // main
 (async () => {
     try {
+        // make directory
+        await mkdirManager.mkDirAll(['txt', 'logs', 'modify']);
         // file list
         const files: string[] = await readdir('txt/');
 

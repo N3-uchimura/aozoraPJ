@@ -1,5 +1,5 @@
 /*
- * scrape.ts
+ * titlescrape.ts
  *
  * function：Node.js server
  **/
@@ -11,17 +11,23 @@ const FIRST_BOOK_ROWS: number = 1;
 const FIRST_PAGE_ROWS: number = 2;
 const MAX_PAGE_ROWS: number = 52;
 const DEF_AOZORA_URL: string = 'https://www.aozora.gr.jp/index_pages/sakuhin_'; // scraping root
-const OUTPUT_PATH: string = '../../output/'; // output path
+const OUTPUT_PATH: string = '../output'; // output path
 
 // import modules
 import { BrowserWindow, app, ipcMain, dialog, Tray, Menu, nativeImage } from 'electron'; // electron
 import * as path from 'path'; // path
 import { Scrape } from './class/Scrape1103'; // scraper
 import ELLogger from './class/MyLogger0301el'; // logger
+import Dialog from './class/ElectronDialog0120'; // dialog
 import CSV from './class/Csv1104'; // csv
+import MKDir from './class/Mkdir0126'; // mdkir
 
 // csv
 const csvMaker = new CSV('SJIS');
+// dialog
+const dialogMaker: Dialog = new Dialog();
+// mkdir
+const mkdirManager = new MKDir();
 // loggeer instance
 const logger: ELLogger = new ELLogger('../../logs', 'access');
 // scraper
@@ -40,7 +46,7 @@ const linkSelection: any = Object.freeze({
     //け: 'ke',
     //こ: 'ko',
     //さ: 'sa',
-    し: 'si',
+    //し: 'si',
     す: 'su',
     せ: 'se',
     そ: 'so',
@@ -91,7 +97,7 @@ const numSelection: any = Object.freeze({
     //け: 8,
     //こ: 17,
     //さ: 11,
-    し: 35,
+    //し: 35,
     す: 5,
     せ: 18,
     そ: 6,
@@ -150,7 +156,7 @@ const createWindow = (): void => {
         });
 
         // index.html load
-        mainWindow.loadFile(path.join(__dirname, '../index.html'));
+        mainWindow.loadFile(path.join(__dirname, '../title.html'));
         // ready
         mainWindow.once('ready-to-show', () => {
             // dev mode
@@ -257,6 +263,8 @@ app.on('window-all-closed', () => {
 ipcMain.on('scrape', async (event: any, _: any) => {
     try {
         logger.info('ipc: scrape mode');
+        // make directory
+        await mkdirManager.mkDirAll(['output', 'logs']);
         // filename
         const fileName: string = (new Date).toISOString().replace(/[^\d]/g, "").slice(0, 8);
         // init scraper
@@ -284,8 +292,8 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                     logger.debug('doPageScrape mode');
 
                     // for loop
-                    const nums: number[] = makeNumberRange(FIRST_BOOK_ROWS, childLength + 1);
-
+                    //const nums: number[] = makeNumberRange(FIRST_BOOK_ROWS, childLength + 1);
+                    const nums: number[] = makeNumberRange(FIRST_BOOK_ROWS, FIRST_BOOK_ROWS + 1);
                     // loop
                     for await (const i of nums) {
                         try {
@@ -298,7 +306,7 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                             await puppScraper.doGo(aozoraUrl);
                             // wait 1 sec
                             await puppScraper.doWaitFor(1000);
-                            logger.debug('doUrlScrape mode');
+                            logger.debug('doTableScrape mode');
                             // row loop number
                             const rows: number[] = makeNumberRange(FIRST_PAGE_ROWS, MAX_PAGE_ROWS);
                             // column loop number
@@ -374,7 +382,7 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                         }
                     }
                     // csv filename
-                    const filePath: string = `${OUTPUT_PATH}${fileName}_${key}行.csv`;
+                    const filePath: string = path.join(__dirname, `${OUTPUT_PATH}\${fileName}_${key}行.csv`)
                     // header
                     const columns: { [key: string]: string } = {
                         number: 'No.', // number
@@ -389,7 +397,7 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                     // all races
                     wholeArray.forEach((books: any) => {
                         // for training
-                        books.forEach((data: any) => {
+                        books.forEach((book: any) => {
                             // empty array
                             let tmpObj: { [key: string]: string } = {
                                 number: '', // number
@@ -400,12 +408,12 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                                 editor: '', // editor
                             };
                             // set each value
-                            tmpObj.number = data[0];
-                            tmpObj.title = data[1];
-                            tmpObj.ruby = data[2];
-                            tmpObj.authorname = data[3];
-                            tmpObj.authorbasename = data[4];
-                            tmpObj.editor = data[5];
+                            tmpObj.number = book[0];
+                            tmpObj.title = book[1];
+                            tmpObj.ruby = book[2];
+                            tmpObj.authorname = book[3];
+                            tmpObj.authorbasename = book[4];
+                            tmpObj.editor = book[5];
                             // set to json
                             finalJsonArray.push(tmpObj);
                         });
@@ -425,7 +433,7 @@ ipcMain.on('scrape', async (event: any, _: any) => {
             }
         }
         // end message
-        showmessage('info', 'completed.');
+        dialogMaker.showmessage('info', 'completed.');
 
     } catch (e: unknown) {
         if (e instanceof Error) {
@@ -444,17 +452,8 @@ ipcMain.on('scrape', async (event: any, _: any) => {
 ipcMain.on('exit', async () => {
     try {
         logger.info('ipc: exit mode');
-        // message
-        const options: Electron.MessageBoxSyncOptions = {
-            type: 'question',
-            title: 'question',
-            message: 'exit',
-            detail: 'exit? data is exposed',
-            buttons: ['yes', 'no'],
-            cancelId: -1, // Esc
-        }
         // selection
-        const selected: number = dialog.showMessageBoxSync(options);
+        const selected: number = dialogMaker.showQuetion('question', 'exit', 'exit? data is exposed');
 
         // when yes
         if (selected == 0) {
@@ -470,59 +469,6 @@ ipcMain.on('exit', async () => {
         }
     }
 });
-
-// show message
-const showmessage = async (type: string, message: string): Promise<void> => {
-    try {
-        logger.info('module: showmessage mode');
-        // mode
-        let tmpType: 'none' | 'info' | 'error' | 'question' | 'warning' | undefined;
-        // title
-        let tmpTitle: string | undefined;
-
-        // url
-        switch (type) {
-            // info
-            case 'info':
-                tmpType = 'info';
-                tmpTitle = 'info';
-                break;
-
-            // error
-            case 'error':
-                tmpType = 'error';
-                tmpTitle = 'error';
-                break;
-
-            // warn
-            case 'warning':
-                tmpType = 'warning';
-                tmpTitle = 'warning';
-                break;
-
-            // other
-            default:
-                tmpType = 'none';
-                tmpTitle = '';
-        }
-
-        // option
-        const options: Electron.MessageBoxOptions = {
-            type: tmpType, // type
-            message: tmpTitle, // title
-            detail: message,  // explanation
-        }
-        // showdialog
-        dialog.showMessageBox(options);
-
-    } catch (e: unknown) {
-        if (e instanceof Error) {
-            // error
-            logger.debug('err5: show message thread');
-            logger.error(e.message);
-        }
-    }
-}
 
 // number array
 const makeNumberRange = (start: number, end: number) => [...new Array(end - start).keys()].map(n => n + start);

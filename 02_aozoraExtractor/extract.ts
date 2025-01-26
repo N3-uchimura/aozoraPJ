@@ -8,20 +8,14 @@
 
 // module
 import path from 'path'; // path
-import log4js from 'log4js'; // logger
 import { promises } from 'fs'; // fs
+import Logger from "./class/Logger0928"; // logger
+import MKDir from './class/Mkdir0126'; // mdkir
 
-// logger setting
-log4js.configure({
-    appenders: {
-        out: { type: 'stdout' },
-        system: { type: 'file', filename: 'logs/access.log' }
-    },
-    categories: {
-        default: { appenders: ['out', 'system'], level: 'debug' }
-    }
-});
-const logger: any = log4js.getLogger();
+// logger
+const logger: Logger = new Logger("./logs");
+// mkdir
+const mkdirManager = new MKDir();
 
 // file system
 const { copyFile, readdir } = promises;
@@ -29,6 +23,8 @@ const { copyFile, readdir } = promises;
 // main
 (async () => {
     try {
+        // make directory
+        await mkdirManager.mkDirAll(['extracted', 'source', 'logs']);
         // file list
         const files: string[] = await readdir('source/');
 

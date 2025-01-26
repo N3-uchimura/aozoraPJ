@@ -9,25 +9,16 @@
 // modules
 import path from 'path'; // path
 import iconv from 'iconv-lite'; // Text converter
-import log4js from 'log4js'; // logger
 import Encoding from 'encoding-japanese';
 import { promises } from 'fs'; // fs
 import { setTimeout } from 'node:timers/promises'; // wait for seconds
-
-// Log path
-const prefix: string = `logs/${(new Date().toJSON().slice(0, 10))}.log`
+import Logger from "./class/Logger0928"; // logger
+import MKDir from './class/Mkdir0126'; // mdkir
 
 // logger setting
-log4js.configure({
-    appenders: {
-        out: { type: 'stdout' },
-        system: { type: 'file', filename: prefix }
-    },
-    categories: {
-        default: { appenders: ['out', 'system'], level: 'debug' }
-    }
-});
-const logger: any = log4js.getLogger();
+const logger: Logger = new Logger("./logs");
+// mkdir
+const mkdirManager = new MKDir();
 
 // file system
 const { readFile, readdir, rename } = promises;
@@ -35,6 +26,8 @@ const { readFile, readdir, rename } = promises;
 // main
 (async () => {
     try {
+        // make directory
+        await mkdirManager.mkDirAll(['txt', 'logs']);
         // file list
         const files: string[] = await readdir('txt/');
 

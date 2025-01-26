@@ -71,7 +71,6 @@ class CSV {
     return new Promise(async (resolve, reject) => {
       try {
         console.log('func: makeCsvData mode');
-        console.log(arr);
         // csvdata
         const csvData: any = stringify(arr, { header: true, columns: columns });
         // write to csv file

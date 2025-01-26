@@ -17,15 +17,21 @@ import { BrowserWindow, app, ipcMain, dialog, Tray, Menu, nativeImage } from 'el
 import * as path from 'path'; // path
 import { Scrape } from './class/Scrape1103'; // scraper
 import ELLogger from './class/MyLogger0301el'; // logger
+import Dialog from './class/ElectronDialog0120'; // dialog
+import mkdir from './class/Mkdir0126'; // mdkir
 
 // success
 let successCounter: number = 0;
 // faile
 let failCounter: number = 0;
 // loggeer instance
-const logger: ELLogger = new ELLogger('../../logs', 'access');
+const logger: ELLogger = new ELLogger('./logs', 'access');
 // scraper
 const puppScraper: Scrape = new Scrape();
+// dialog
+const dialogMaker: Dialog = new Dialog();
+// mkdir
+const mkdirManager = new mkdir();
 // zip linkselector
 const zipLinkSelector: string = 'body > table.download > tbody > tr:nth-child(2) > td:nth-child(3) > a';
 
@@ -152,7 +158,7 @@ const createWindow = (): void => {
         });
 
         // index.html load
-        mainWindow.loadFile(path.join(__dirname, '../index.html'));
+        mainWindow.loadFile(path.join(__dirname, '../scrape.html'));
         // ready
         mainWindow.once('ready-to-show', () => {
             // dev mode
@@ -205,6 +211,8 @@ app.on('ready', async () => {
     logger.info('app: electron is ready');
     // create window
     createWindow();
+    // make dir
+    mkdirManager.mkDir('./logs');
     // icons
     const icon: Electron.NativeImage = nativeImage.createFromPath(path.join(__dirname, '../assets/aozora.ico'));
     // tray
@@ -392,7 +400,7 @@ ipcMain.on('scrape', async (event: any, _: any) => {
             }
         }
         // end message
-        showmessage('info', 'completed.');
+        dialogMaker.showmessage('info', 'completed.');
 
 
     } catch (e: unknown) {
@@ -412,17 +420,8 @@ ipcMain.on('scrape', async (event: any, _: any) => {
 ipcMain.on('exit', async () => {
     try {
         logger.info('ipc: exit mode');
-        // message
-        const options: Electron.MessageBoxSyncOptions = {
-            type: 'question',
-            title: 'question',
-            message: 'exit',
-            detail: 'exit? data is exposed',
-            buttons: ['yes', 'no'],
-            cancelId: -1, // Esc
-        }
         // selection
-        const selected: number = dialog.showMessageBoxSync(options);
+        const selected: number = dialogMaker.showQuetion('question', 'exit', 'exit? data is exposed');
 
         // when yes
         if (selected == 0) {
@@ -438,59 +437,6 @@ ipcMain.on('exit', async () => {
         }
     }
 });
-
-// show message
-const showmessage = async (type: string, message: string): Promise<void> => {
-    try {
-        logger.info('module: showmessage mode');
-        // mode
-        let tmpType: 'none' | 'info' | 'error' | 'question' | 'warning' | undefined;
-        // title
-        let tmpTitle: string | undefined;
-
-        // url
-        switch (type) {
-            // info
-            case 'info':
-                tmpType = 'info';
-                tmpTitle = 'info';
-                break;
-
-            // error
-            case 'error':
-                tmpType = 'error';
-                tmpTitle = 'error';
-                break;
-
-            // warn
-            case 'warning':
-                tmpType = 'warning';
-                tmpTitle = 'warning';
-                break;
-
-            // other
-            default:
-                tmpType = 'none';
-                tmpTitle = '';
-        }
-
-        // option
-        const options: Electron.MessageBoxOptions = {
-            type: tmpType, // type
-            message: tmpTitle, // title
-            detail: message,  // explanation
-        }
-        // showdialog
-        dialog.showMessageBox(options);
-
-    } catch (e: unknown) {
-        if (e instanceof Error) {
-            // error
-            logger.debug('err5: show message thread');
-            logger.error(e.message);
-        }
-    }
-}
 
 // number array
 const makeNumberRange = (start: number, end: number) => [...new Array(end - start).keys()].map(n => n + start);
