@@ -1,6 +1,6 @@
 node_modules/
-logs/
-build/
-output/
+logs/*
+build/*
+output/*
 package-lock.json
-release-builds/
+release-builds/*
