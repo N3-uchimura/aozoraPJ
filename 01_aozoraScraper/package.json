@@ -9,7 +9,7 @@
     "author": "npm run build && electron ./build/authorscrape.js",
     "scrape": "npm run build && electron ./build/scrape.js",
     "title": "npm run build && electron ./build/titlescrape.js",
-    "package-win": "tsc && chcp 65001 && electron-packager . --overwrite --platform=win32 --arch=x64 --prune --icon=./assets/andbar.ico --out=release-builds --electronVersion=28.2.0"
+    "package-win": "tsc && chcp 65001 && electron-packager . --overwrite --platform=win32 --arch=x64 --prune --icon=./assets/aozora.ico --out=release-builds --electronVersion=28.2.0"
   },
   "keywords": [],
   "author": {

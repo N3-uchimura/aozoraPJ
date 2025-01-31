@@ -7,13 +7,12 @@
 'use strict';
 
 // const
-//const MAX_AUTHORS: number = 2399;
-const MAX_AUTHORS: number = 5;
+const MAX_AUTHORS: number = 2399;
 const DEF_AOZORA_URL: string = 'https://www.aozora.gr.jp/index_pages/person'; // scraping root
-const OUTPUT_PATH: string = '../output/'; // output path
+const OUTPUT_PATH: string = './output/'; // output path
 
 // import modules
-import { BrowserWindow, app, ipcMain, dialog, Tray, Menu, nativeImage } from 'electron'; // electron
+import { BrowserWindow, app, ipcMain, Tray, Menu, nativeImage } from 'electron'; // electron
 import * as path from 'path'; // path
 import { Scrape } from './class/Scrape1103'; // scraper
 import ELLogger from './class/MyLogger0301el'; // logger
@@ -169,8 +168,6 @@ ipcMain.on('scrape', async (event: any, _: any) => {
         // faile
         let failCounter: number = 0;
         // last array
-        let wholeArray: any = [];
-        // last array
         let finalArray: string[][] = [];
         // filename
         const fileName: string = (new Date).toISOString().replace(/[^\d]/g, '').slice(0, 8);
@@ -190,8 +187,6 @@ ipcMain.on('scrape', async (event: any, _: any) => {
             try {
                 // tmp array
                 let tmpArray: string[] = [];
-                // last array
-                let finalArray: string[][] = [];
                 // URL
                 const aozoraUrl: string = `${DEF_AOZORA_URL}${i}.html`;
                 logger.debug(`process: scraping ${aozoraUrl}`);
@@ -201,7 +196,7 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                 await puppScraper.doWaitFor(1000);
                 logger.debug('doAuthorScrape mode');
                 // row loop number
-                const rows: number[] = makeNumberRange(1, 5);
+                const rows: number[] = makeNumberRange(1, 6);
                 // insert no.
                 tmpArray.push(i.toString());
 
@@ -211,6 +206,7 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                         logger.debug(`process: scraping No.${j - 1}`);
                         // selector
                         let finalLinkSelector: string = `body > table > tbody > tr:nth-child(${j}) > td:nth-child(2)`;
+                        console.log(finalLinkSelector);
                         // when title link
                         if (j == 1) {
                             finalLinkSelector += ' > font';
@@ -219,6 +215,7 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                         await puppScraper.doWaitFor(500);
                         // wait and click
                         const targetstring: string = await puppScraper.doSingleEval(finalLinkSelector, 'innerHTML');
+
                         // set to tmparray
                         tmpArray.push(targetstring);
                         // wait 0.5 sec
@@ -235,6 +232,7 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                 }
                 // set to finalArray
                 finalArray.push(tmpArray);
+                console.log(tmpArray);
                 // wait for 1sec
                 await puppScraper.doWaitFor(1000);
 
@@ -257,8 +255,6 @@ ipcMain.on('scrape', async (event: any, _: any) => {
             }
             // successcounter
             successCounter++;
-            // put into wholearray
-            wholeArray.push(finalArray);
             // wait for 1sec
             await puppScraper.doWaitFor(1000);
         }
@@ -275,29 +271,26 @@ ipcMain.on('scrape', async (event: any, _: any) => {
         };
         // finaljson
         let finalJsonArray: any[] = [];
-        // all races
-        wholeArray.forEach((authors: any) => {
-            // for training
-            authors.forEach((author: any) => {
-                // empty array
-                let tmpObj: { [key: string]: string } = {
-                    number: '', // number
-                    authorname: '', // authorname
-                    ruby: '', // ruby
-                    roman: '', // roman
-                    birth: '', // birth
-                    dod: '', // dod
-                };
-                // set each value
-                tmpObj.number = author[0];
-                tmpObj.authorname = author[1];
-                tmpObj.ruby = author[2];
-                tmpObj.roman = author[3];
-                tmpObj.birth = author[4];
-                tmpObj.dod = author[5];
-                // set to json
-                finalJsonArray.push(tmpObj);
-            });
+        // for training
+        finalArray.forEach((author: any) => {
+            // empty array
+            let tmpObj: { [key: string]: string } = {
+                number: '', // number
+                authorname: '', // authorname
+                ruby: '', // ruby
+                roman: '', // roman
+                birth: '', // birth
+                dod: '', // dod
+            };
+            // set each value
+            tmpObj.number = author[0];
+            tmpObj.authorname = author[1];
+            tmpObj.ruby = author[2];
+            tmpObj.roman = author[3];
+            tmpObj.birth = author[4];
+            tmpObj.dod = author[5];
+            // set to json
+            finalJsonArray.push(tmpObj);
         });
         // write data
         await csvMaker.makeCsvData(finalJsonArray, columns, filePath);

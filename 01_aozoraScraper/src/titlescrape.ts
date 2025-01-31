@@ -35,18 +35,18 @@ const puppScraper: Scrape = new Scrape();
 
 // links
 const linkSelection: any = Object.freeze({
-    //あ: 'a',
-    //い: 'i',
-    //う: 'u',
-    //え: 'e',
-    //お: 'o',
-    //か: 'ka',
-    //き: 'ki',
-    //く: 'ku',
-    //け: 'ke',
-    //こ: 'ko',
-    //さ: 'sa',
-    //し: 'si',
+    あ: 'a',
+    い: 'i',
+    う: 'u',
+    え: 'e',
+    お: 'o',
+    か: 'ka',
+    き: 'ki',
+    く: 'ku',
+    け: 'ke',
+    こ: 'ko',
+    さ: 'sa',
+    し: 'si',
     す: 'su',
     せ: 'se',
     そ: 'so',
@@ -86,20 +86,20 @@ const linkSelection: any = Object.freeze({
 
 // links number
 const numSelection: any = Object.freeze({
-    //あ: 21,
-    //い: 10,
-    //う: 7,
-    //え: 5,
-    //お: 14,
-    //か: 20,
-    //き: 14,
-    //く: 8,
-    //け: 8,
-    //こ: 17,
-    //さ: 11,
-    //し: 35,
+    あ: 21,
+    い: 10,
+    う: 7,
+    え: 5,
+    お: 14,
+    か: 20,
+    き: 14,
+    く: 8,
+    け: 8,
+    こ: 17,
+    さ: 11,
+    し: 35,
     す: 5,
-    せ: 18,
+    せ: 19,
     そ: 6,
     た: 12,
     ち: 8,
@@ -111,7 +111,7 @@ const numSelection: any = Object.freeze({
     ぬ: 1,
     ね: 2,
     の: 3,
-    は: 17,
+    は: 18,
     ひ: 10,
     ふ: 14,
     へ: 4,
@@ -292,8 +292,7 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                     logger.debug('doPageScrape mode');
 
                     // for loop
-                    //const nums: number[] = makeNumberRange(FIRST_BOOK_ROWS, childLength + 1);
-                    const nums: number[] = makeNumberRange(FIRST_BOOK_ROWS, FIRST_BOOK_ROWS + 1);
+                    const nums: number[] = makeNumberRange(FIRST_BOOK_ROWS, childLength + 1);
                     // loop
                     for await (const i of nums) {
                         try {
@@ -382,7 +381,7 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                         }
                     }
                     // csv filename
-                    const filePath: string = path.join(__dirname, `${OUTPUT_PATH}\${fileName}_${key}行.csv`)
+                    const filePath: string = path.join(__dirname, `${OUTPUT_PATH}\\${fileName}_${key}行.csv`)
                     // header
                     const columns: { [key: string]: string } = {
                         number: 'No.', // number
