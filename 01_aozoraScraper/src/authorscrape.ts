@@ -206,7 +206,6 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                         logger.debug(`process: scraping No.${j - 1}`);
                         // selector
                         let finalLinkSelector: string = `body > table > tbody > tr:nth-child(${j}) > td:nth-child(2)`;
-                        console.log(finalLinkSelector);
                         // when title link
                         if (j == 1) {
                             finalLinkSelector += ' > font';
@@ -232,7 +231,6 @@ ipcMain.on('scrape', async (event: any, _: any) => {
                 }
                 // set to finalArray
                 finalArray.push(tmpArray);
-                console.log(tmpArray);
                 // wait for 1sec
                 await puppScraper.doWaitFor(1000);
 
@@ -298,6 +296,7 @@ ipcMain.on('scrape', async (event: any, _: any) => {
         await puppScraper.doWaitFor(1000);
         // end message
         dialogMaker.showmessage('info', 'completed.');
+        logger.info('app: completed');
 
     } catch (e: unknown) {
         if (e instanceof Error) {

@@ -29,11 +29,11 @@ class Logger {
     // logger config
     log4js.configure({
       appenders: {
-        app: { type: 'dateFile', filename: path.join(Logger.loggerDir, prefix)},
+        app: { type: 'dateFile', filename: path.join(Logger.loggerDir, prefix) },
         out: { type: 'stdout' },
       },
       categories: {
-        default: { appenders: ['out', 'app'], level: 'all' }
+        default: { appenders: ['out', 'app'], level: 'info' }
       }
     });
     // logger instance

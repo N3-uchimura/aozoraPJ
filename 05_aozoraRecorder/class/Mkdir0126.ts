@@ -21,7 +21,7 @@ class Mkdir {
 
   // mkDir
   mkDir = async (dir: string): Promise<void> => {
-    return new Promise(async (resolve, reject) => {
+    return new Promise(async (resolve, _) => {
       try {
         // file path
         const filePath: string = path.join(__dirname, '..', dir);
@@ -39,18 +39,18 @@ class Mkdir {
           // error
           console.log(err.message);
         }
-        reject();
+        resolve();
       }
     });
   }
 
   // mkDirAll
   mkDirAll = async (dirs: string[]): Promise<void> => {
-    return new Promise(async (resolve1, reject1) => {
+    return new Promise(async (resolve1, _) => {
       try {
         // make all dir
         Promise.all(dirs.map(async (dir: string): Promise<void> => {
-          return new Promise(async (resolve2, reject2) => {
+          return new Promise(async (resolve2, _) => {
             try {
               // file path
               const filePath: string = path.join(__dirname, '..', dir);
@@ -68,7 +68,7 @@ class Mkdir {
                 // error
                 console.log(err.message);
               }
-              reject2();
+              resolve1();
             }
           })
         })).then(() => resolve1());
@@ -80,7 +80,7 @@ class Mkdir {
           // error
           console.log(e.message);
         }
-        reject1();
+        resolve1();
       }
     });
   }

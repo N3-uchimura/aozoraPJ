@@ -21,7 +21,9 @@ class ELLogger {
         // filename tmp
         logger.transports.file.fileName = `${filename}.log`;
         // filename tmp
-        logger.transports.console.format = '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}'
+        logger.transports.console.format = '[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}] {text}';
+        // set production
+        logger.transports.file.level = 'info';
         // filename now
         const curr: string = logger.transports.file.fileName;
         // file saving path

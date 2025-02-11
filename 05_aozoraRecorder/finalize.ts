@@ -8,53 +8,51 @@
 
 // modules
 import path from 'path'; // path
-import log4js from 'log4js'; // logger
 import ffmpeg from 'fluent-ffmpeg'; // ffmpeg
 import { promises } from 'fs'; // fs
-
-// Logger config
-log4js.configure({
-    appenders: {
-        out: { type: 'stdout' },
-        system: { type: 'dateFile', filename: 'logs/system.log', pattern: 'yyyyMMdd' },
-        errorRaw: { type: 'dateFile', filename: 'logs/error.log', pattern: 'yyyyMMdd' },
-        error: { type: 'logLevelFilter', appender: 'errorRaw', level: 'error' },
-    },
-    categories: {
-        default: { appenders: ['out', 'system', 'error'], level: 'trace' },
-    }
-});
-const logger: any = log4js.getLogger();
+import Logger from './class/Logger0928'; // logger
+import mkdir from './class/Mkdir0126'; // mdkir
 
 // file system
 const { readdir } = promises;
+// loggeer instance
+const logger: Logger = new Logger('./logs');
+// mkdir
+const mkdirManager = new mkdir();
 
 // main
 (async () => {
     try {
+        logger.info('audio files merge started.');
+        // make dir
+        mkdirManager.mkDirAll(['./logs', './download', './tmp', './backup']);
+
         // subdir list
         const allDirents: any = await readdir('tmp/', { withFileTypes: true });
         const dirNames: any[] = allDirents.filter((dirent: any) => dirent.isDirectory()).map(({ name }: any) => name);
+        logger.trace(`filepaths are ${dirNames}`);
 
         // loop
         await Promise.all(dirNames.map(async (dir: any): Promise<void> => {
             return new Promise(async (resolve1, reject1) => {
                 try {
                     // target dir path
-                    const targetDir: string = path.join(__dirname, 'tmp', dir);
+                    const targetDir: string = path.join('./tmp', dir);
                     // file list in subfolder
                     const audioFiles: string[] = (await readdir(targetDir)).filter((ad: string) => path.parse(ad).ext == '.wav');
 
                     // filepath list
                     const filePaths: any[] = audioFiles.map((fl: string) => {
-                        return path.join(__dirname, 'tmp', dir, fl);
-
+                        return path.join('./tmp', dir, fl);
                     });
+                    logger.trace(`files are ${filePaths}`);
 
                     // DL path
-                    const downloadDir: string = path.join(__dirname, 'backup');
+                    const downloadDir: string = './backup';
                     // output path
-                    const outputPath: string = path.join(__dirname, 'download', `${dir}.wav`);
+                    const outputPath: string = path.join('./download', `${dir}.wav`);
+
+                    logger.debug(`outputPath is ${outputPath}`);
 
                     // ffmpeg
                     let mergedVideo: any = ffmpeg();
@@ -65,47 +63,40 @@ const { readdir } = promises;
                             try {
                                 // merged video
                                 mergedVideo = mergedVideo.mergeAdd(path);
+                                logger.trace(`add to mergelist ${path}...`);
                                 // complete
                                 resolve2();
 
                             } catch (err1: unknown) {
-                                if (err1 instanceof Error) {
-                                    logger.error(err1.message);
-                                    // error
-                                    reject2();
-                                }
+                                logger.error(err1);
+                                // error
+                                reject2();
                             }
                         });
                     }));
 
+                    logger.info('merging files...');
                     // merge
                     mergedVideo.mergeToFile(outputPath, downloadDir)
                         .on('error', (err2: unknown) => {
-                            if (err2 instanceof Error) {
-                                logger.error(err2.message);
-                            }
+                            logger.error(err2);
+                            reject1();
                         })
                         .on('end', function () {
                             logger.debug(`${dir}.wav  merge finished.`);
+                            // result
+                            resolve1();
                         });
-                    // result
-                    resolve1();
 
                 } catch (error: unknown) {
-                    if (error instanceof Error) {
-                        logger.error(error.message);
-                        // error
-                        reject1();
-                    }
+                    logger.error(error);
+                    // error
+                    reject1();
                 }
             });
-        }));
-        logger.info('operation finished.');
+        })).then(() => logger.info('operation finished.'));
 
     } catch (e: unknown) {
-        if (e instanceof Error) {
-            // error
-            logger.error(e.message);
-        }
+        logger.error(e);
     }
 })();

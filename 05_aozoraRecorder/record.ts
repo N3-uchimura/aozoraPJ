@@ -12,8 +12,14 @@ import iconv from 'iconv-lite'; // Text converter
 import * as stream from 'stream';
 import { promisify } from 'util';
 import axios from 'axios';
-import log4js from 'log4js'; // logger
 import { createWriteStream, promises, existsSync } from 'fs'; // fs
+import Logger from './class/Logger0928'; // logger
+import mkdir from './class/Mkdir0126'; // mdkir
+
+// loggeer instance
+const logger: Logger = new Logger('./logs');
+// mkdir
+const mkdirManager = new mkdir();
 
 // port
 const PORT: number = 5000;
@@ -22,32 +28,14 @@ const HOSTNAME: string = '127.0.0.1';
 // pipe
 const finished = promisify(stream.finished);
 
-// Logger config
-const prefix: string = `logs/${(new Date().toJSON().slice(0, 10))}.log`;
-const errprefix: string = `logs/err${(new Date().toJSON().slice(0, 10))}.log`;
-
-// Logger config
-log4js.configure({
-    appenders: {
-        out: { type: 'stdout' },
-        system: { type: 'file', filename: prefix, pattern: 'yyyyMMdd' },
-        errorRaw: { type: 'file', filename: errprefix, pattern: 'yyyyMMdd' },
-        error: { type: 'logLevelFilter', appender: 'errorRaw', level: 'error' },
-    },
-    categories: {
-        default: { appenders: ['out', 'system', 'error'], level: 'trace' },
-    }
-});
-const logger: any = log4js.getLogger();
-
 // file system
-const { readFile, readdir, mkdir, rm } = promises;
+const { readFile, readdir, rm } = promises;
 
 // synthesis audio
 const synthesisRequest = async (filename: string, text: string, outDir: string): Promise<string> => {
     return new Promise(async (resolve, reject) => {
         try {
-            logger.debug(`${filename} started.`);
+            logger.info(`${filename} started.`);
             // parameter
             const params: any = {
                 text: text,
@@ -89,11 +77,9 @@ const synthesisRequest = async (filename: string, text: string, outDir: string):
             });
 
         } catch (e: unknown) {
-            if (e instanceof Error) {
-                // error
-                logger.error(e.message);
-                reject('error');
-            }
+            // error
+            logger.error(e);
+            reject('error');
         }
     });
 }
@@ -102,24 +88,8 @@ const synthesisRequest = async (filename: string, text: string, outDir: string):
 (async () => {
     try {
         logger.info('operation started.');
-
         // make dir
-        if (!existsSync('./tmp')) {
-            await mkdir('./tmp');
-            logger.debug(`finished making.. ./tmp`);
-        }
-
-        // make dir
-        if (!existsSync('./txt')) {
-            await mkdir('./txt');
-            logger.debug(`finished making.. ./txt`);
-        }
-
-        // make dir
-        if (!existsSync('./logs')) {
-            await mkdir('./logs');
-            logger.debug(`finished making.. ./logs`);
-        }
+        mkdirManager.mkDirAll(['./logs', './txt', './tmp']);
 
         // subdir list
         const allDirents: any = await readdir('tmp/', { withFileTypes: true });
@@ -131,18 +101,16 @@ const synthesisRequest = async (filename: string, text: string, outDir: string):
                 return new Promise(async (resolve0, reject0) => {
                     try {
                         // delete path
-                        const delFilePath: string = path.join(__dirname, 'tmp', tmps);
-                        logger.debug(`deleting ${tmps}`);
+                        const delFilePath: string = path.join('./tmp', tmps);
+                        logger.trace(`deleting ${tmps}`);
                         // delete file
                         await rm(delFilePath, { recursive: true });
                         resolve0();
 
                     } catch (err: unknown) {
-                        if (err instanceof Error) {
-                            logger.error(err.message);
-                            // error
-                            reject0();
-                        }
+                        logger.error(err);
+                        // error
+                        reject0();
                     }
                 });
             }));
@@ -166,14 +134,14 @@ const synthesisRequest = async (filename: string, text: string, outDir: string):
                     // ID
                     const fileId: string = fileName.slice(0, 5);
                     // save path
-                    const outDirPath: string = path.join(__dirname, 'tmp', fileId);
+                    const outDirPath: string = path.join('./tmp', fileId);
                     // make dir
                     if (!existsSync(outDirPath)) {
-                        await mkdir(outDirPath);
-                        logger.debug(`finished making.. ${outDirPath}`);
+                        await mkdirManager.mkDir(outDirPath);
+                        logger.trace(`finished making.. ${outDirPath}`);
                     }
                     // file path
-                    const filePath: string = path.join(__dirname, 'txt', fl);
+                    const filePath: string = path.join('./txt', fl);
                     // file reading
                     const txtdata: Buffer = await readFile(filePath);
                     // decode
@@ -193,7 +161,7 @@ const synthesisRequest = async (filename: string, text: string, outDir: string):
                                 if (st.trim().length == 0) {
                                     throw new Error('err: no length');
                                 }
-                                logger.debug(`synthesizing .. ${st}`);
+                                logger.trace(`synthesizing .. ${st}`);
                                 // index
                                 const paddedIndex1: string = index.toString().padStart(3, '0');
 
@@ -207,6 +175,8 @@ const synthesisRequest = async (filename: string, text: string, outDir: string):
                                             try {
                                                 // index
                                                 const paddedIndex2: string = idx.toString().padStart(3, '0');
+                                                logger.trace("1: " + paddedIndex1);
+                                                logger.trace("2: " + paddedIndex2);
                                                 // filename
                                                 tmpFileName = `${fileId}-${paddedIndex1}${paddedIndex2}.wav`;
                                                 // synthesis request
@@ -217,11 +187,9 @@ const synthesisRequest = async (filename: string, text: string, outDir: string):
                                                 resolve3();
 
                                             } catch (err1: unknown) {
-                                                if (err1 instanceof Error) {
-                                                    logger.error(err1.message);
-                                                    // error
-                                                    reject3();
-                                                }
+                                                logger.error(err1);
+                                                // error
+                                                reject3();
                                             }
                                         })
                                     }));
@@ -239,11 +207,9 @@ const synthesisRequest = async (filename: string, text: string, outDir: string):
                                 resolve2();
 
                             } catch (err2: unknown) {
-                                if (err2 instanceof Error) {
-                                    logger.error(err2.message);
-                                    // error
-                                    reject2();
-                                }
+                                logger.error(err2);
+                                // error
+                                reject2();
                             }
                         });
                     }));
@@ -251,11 +217,9 @@ const synthesisRequest = async (filename: string, text: string, outDir: string):
                     resolve1();
 
                 } catch (err3: unknown) {
-                    if (err3 instanceof Error) {
-                        logger.error(err3.message);
-                        // error
-                        reject1();
-                    }
+                    logger.error(err3);
+                    // error
+                    reject1();
                 }
             });
         }));
@@ -263,9 +227,7 @@ const synthesisRequest = async (filename: string, text: string, outDir: string):
         logger.info('operation finished.');
 
     } catch (e: unknown) {
-        if (e instanceof Error) {
-            // error
-            logger.error(e.message);
-        }
+        // error
+        logger.error(e);
     }
 })();
