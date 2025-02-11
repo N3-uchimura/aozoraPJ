@@ -89,7 +89,7 @@ const synthesisRequest = async (filename: string, text: string, outDir: string):
     try {
         logger.info('operation started.');
         // make dir
-        mkdirManager.mkDirAll(['./logs', './txt', './tmp']);
+        await mkdirManager.mkDirAll(['./logs', './txt', './tmp']);
 
         // subdir list
         const allDirents: any = await readdir('tmp/', { withFileTypes: true });

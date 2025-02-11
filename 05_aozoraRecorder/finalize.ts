@@ -25,7 +25,7 @@ const mkdirManager = new mkdir();
     try {
         logger.info('audio files merge started.');
         // make dir
-        mkdirManager.mkDirAll(['./logs', './download', './tmp', './backup']);
+        await mkdirManager.mkDirAll(['./logs', './download', './tmp', './backup']);
 
         // subdir list
         const allDirents: any = await readdir('tmp/', { withFileTypes: true });
