@@ -6,14 +6,17 @@
 
 'use strict';
 
+// const
+const APP_NAME: string = 'aozoraextractor';
+
 // module
 import path from 'path'; // path
 import { promises } from 'fs'; // fs
-import Logger from "./class/Logger0928"; // logger
-import MKDir from './class/Mkdir0126'; // mdkir
+import Logger from "./class/Logger"; // logger
+import MKDir from './class/Mkdir0301'; // mdkir
 
 // logger
-const logger: Logger = new Logger("./logs");
+const logger: Logger = new Logger(APP_NAME, true);
 // mkdir
 const mkdirManager = new MKDir();
 

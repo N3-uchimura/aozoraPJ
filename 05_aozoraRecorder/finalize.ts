@@ -6,17 +6,20 @@
 
 'use strict';
 
+// app name
+const APP_NAME: string = 'aozoraRecorder_finalize';
+
 // modules
 import path from 'path'; // path
 import ffmpeg from 'fluent-ffmpeg'; // ffmpeg
 import { promises } from 'fs'; // fs
-import Logger from './class/Logger0928'; // logger
-import mkdir from './class/Mkdir0126'; // mdkir
+import Logger from './class/Logger'; // logger
+import mkdir from './class/Mkdir0301'; // mdkir
 
 // file system
 const { readdir } = promises;
 // loggeer instance
-const logger: Logger = new Logger('./logs');
+const logger: Logger = new Logger(APP_NAME, true);
 // mkdir
 const mkdirManager = new mkdir();
 
@@ -25,7 +28,7 @@ const mkdirManager = new mkdir();
     try {
         logger.info('audio files merge started.');
         // make dir
-        await mkdirManager.mkDirAll(['./logs', './download', './tmp', './backup']);
+        await mkdirManager.mkDirAll(['./download', './tmp', './backup']);
 
         // subdir list
         const allDirents: any = await readdir('tmp/', { withFileTypes: true });

@@ -12,8 +12,8 @@ import iconv from 'iconv-lite'; // Text converter
 import Encoding from 'encoding-japanese';
 import { promises } from 'fs'; // fs
 import { setTimeout } from 'node:timers/promises'; // wait for seconds
-import Logger from "./class/Logger0928"; // logger
-import MKDir from './class/Mkdir0126'; // mdkir
+import Logger from "./class/Logger"; // logger
+import MKDir from './class/Mkdir0301'; // mdkir
 
 // logger setting
 const logger: Logger = new Logger("./logs");

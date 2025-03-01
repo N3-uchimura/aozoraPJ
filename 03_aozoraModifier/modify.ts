@@ -6,17 +6,20 @@
 
 'use strict';
 
+// const
+const APP_NAME: string = 'aozoramodify';
+
 // modules
 import path from 'path'; // path
 import { promises } from 'fs'; // fs
 import iconv from 'iconv-lite'; // Text converter
 import Encoding from 'encoding-japanese';
 import { toDakuon } from 'kanadaku';
-import Logger from "./class/Logger0928"; // logger
-import MKDir from './class/Mkdir0126'; // mdkir
+import Logger from "./class/Logger"; // logger
+import MKDir from './class/Mkdir0301'; // mdkir
 
 // logger
-const logger: Logger = new Logger("./logs");
+const logger: Logger = new Logger(APP_NAME, true);
 // mkdir
 const mkdirManager = new MKDir();
 // file system

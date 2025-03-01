@@ -1,7 +1,7 @@
 {
   "name": "numthree.com.aozoraextractor",
   "productName": "aozoraExtractor",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "application for aozoraExtractor",
   "main": "extract.ts",
   "scripts": {

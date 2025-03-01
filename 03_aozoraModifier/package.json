@@ -1,7 +1,7 @@
 {
   "name": "numthree.com.aozoramodifier",
   "productName": "aozoraModifier",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "application for aozoraModifier",
   "main": "modify.ts",
   "scripts": {

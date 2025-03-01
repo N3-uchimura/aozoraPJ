@@ -1,7 +1,7 @@
 {
   "name": "numthree.com.aozorarenamer",
   "productName": "aozoraRenamer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "application for aozoraRenamer",
   "main": "rename.ts",
   "scripts": {

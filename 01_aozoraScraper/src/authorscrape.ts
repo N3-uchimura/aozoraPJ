@@ -7,6 +7,7 @@
 'use strict';
 
 // const
+const APP_NAME: string = 'aozorascrape_author';
 const MAX_AUTHORS: number = 2399;
 const DEF_AOZORA_URL: string = 'https://www.aozora.gr.jp/index_pages/person'; // scraping root
 const OUTPUT_PATH: string = './output/'; // output path
@@ -14,22 +15,22 @@ const OUTPUT_PATH: string = './output/'; // output path
 // import modules
 import { BrowserWindow, app, ipcMain, Tray, Menu, nativeImage } from 'electron'; // electron
 import * as path from 'path'; // path
-import { Scrape } from './class/Scrape1103'; // scraper
-import ELLogger from './class/MyLogger0301el'; // logger
-import Dialog from './class/ElectronDialog0120'; // dialog
-import CSV from './class/Csv1104'; // csv
-import MKDir from './class/Mkdir0126'; // mdkir
+import { Scrape } from './class/ElScrape0301'; // scraper
+import ELLogger from './class/ElLogger'; // logger
+import Dialog from './class/ElDialog0301'; // dialog
+import CSV from './class/ElCsv0301'; // csv
+import MKDir from './class/ElMkdir0301'; // mdkir
 
 // csv
-const csvMaker = new CSV('SJIS');
+const csvMaker = new CSV(APP_NAME, 'SJIS');
 // dialog
-const dialogMaker: Dialog = new Dialog();
+const dialogMaker: Dialog = new Dialog(APP_NAME);
 // mkdir
-const mkdirManager = new MKDir();
+const mkdirManager = new MKDir(APP_NAME);
 // loggeer instance
-const logger: ELLogger = new ELLogger('./logs', 'access');
+const logger: ELLogger = new ELLogger(APP_NAME, 'access');
 // scraper
-const puppScraper: Scrape = new Scrape();
+const puppScraper: Scrape = new Scrape(APP_NAME);
 
 /*
  main

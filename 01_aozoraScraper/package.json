@@ -1,7 +1,7 @@
 {
   "name": "numthree.com.aozorascraper",
   "productName": "aozoraScraper",
-  "version": "1.1.2",
+  "version": "1.1.5",
   "description": "Electron application for scraping",
   "main": "build/authorscrape.js",
   "scripts": {
@@ -9,7 +9,7 @@
     "author": "npm run build && electron ./build/authorscrape.js",
     "scrape": "npm run build && electron ./build/scrape.js",
     "title": "npm run build && electron ./build/titlescrape.js",
-    "package-win": "npm run build && electron-packager . --overwrite --platform=win32 --arch=x64 --prune --icon=./assets/aozora.ico --out=release-builds --electronVersion=28.2.0"
+    "package-win": "npm run build && electron-packager . --overwrite --asar --platform=win32 --arch=x64 --prune --icon=./assets/aozora.ico --out=release-builds --electronVersion=28.2.0"
   },
   "keywords": [],
   "author": {

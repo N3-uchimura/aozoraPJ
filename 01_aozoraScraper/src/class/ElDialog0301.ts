@@ -1,46 +1,51 @@
 /**
- * ElectronDialog.ts
+ * ElDialog.ts
  *
- * ElectronDialog
+ * name：ElDialog
  * function：Dialog operation for electron
- * updated: 2025/01/20
+ * updated: 2025/03/01
  **/
 
-"use strict";
+'use strict';
 
 /// import modules
-import { dialog } from "electron"; // electron
-
-const CHOOSE_IMG_FILE: string = "画像を選択してください"; // select image
+import { dialog } from 'electron'; // electron
+import ELLogger from './ElLogger'; // logger
+// select image
+const CHOOSE_IMG_FILE: string = '画像を選択してください';
 
 // ElectronDialog class
 class Dialog {
+  static logger: any; // static logger
   // construnctor
-  constructor() {}
+  constructor(appname: string) {
+    // logger setting
+    Dialog.logger = new ELLogger(appname, 'dialog');
+    Dialog.logger.info('dialog: initialize mode');
+  }
 
   /// show question
   // show yes/no
   showQuetion(title: string, message: string, detail: string): number {
     try {
+      Dialog.logger.info('dialog: showQuetion started.');
       // quetion message option
       const options: Electron.MessageBoxSyncOptions = {
-        type: "question",
+        type: 'question',
         title: title,
         message: message,
         detail: detail,
-        buttons: ["yes", "no"],
+        buttons: ['yes', 'no'],
         cancelId: -1, // Esc
       };
       // selected number
       const selected: number = dialog.showMessageBoxSync(options);
+      Dialog.logger.info('dialog: showQuetion finished.');
       // return selected
       return selected;
     } catch (e: unknown) {
       // error
-      if (e instanceof Error) {
-        // error
-        console.log(e.message);
-      }
+      Dialog.logger.error(e);
       return 99;
     }
   }
@@ -48,25 +53,24 @@ class Dialog {
   // show image
   showImage(properties: any): any {
     try {
+      Dialog.logger.info('dialog: showImage started.');
       // quetion message option
       const options: Electron.OpenDialogSyncOptions = {
         properties: properties, // file
         title: CHOOSE_IMG_FILE, // file selection
-        defaultPath: ".", // root path
+        defaultPath: '.', // root path
         filters: [
-          { name: "jpg|png", extensions: ["jpg", "jpeg", "png"] }, // jpg|png
+          { name: 'jpg|png', extensions: ['jpg', 'jpeg', 'png'] }, // jpg|png
         ],
       };
       // result
       const result: any = dialog.showOpenDialog(options);
+      Dialog.logger.info('dialog: showImage finished.');
       // return selected
       return result;
     } catch (e: unknown) {
       // error
-      if (e instanceof Error) {
-        // error
-        console.log(e.message);
-      }
+      Dialog.logger.error(e);
       return 99;
     }
   }
@@ -74,13 +78,14 @@ class Dialog {
   // show message
   showmessage(type: string, message: string) {
     try {
+      Dialog.logger.info('dialog: showmessage started.');
       // mode
       let tmpType:
-        | "none"
-        | "info"
-        | "error"
-        | "question"
-        | "warning"
+        | 'none'
+        | 'info'
+        | 'error'
+        | 'question'
+        | 'warning'
         | undefined;
       // title
       let tmpTitle: string | undefined;
@@ -88,27 +93,27 @@ class Dialog {
       // url
       switch (type) {
         // info mode
-        case "info":
-          tmpType = "info";
-          tmpTitle = "info";
+        case 'info':
+          tmpType = 'info';
+          tmpTitle = 'info';
           break;
 
         // error mode
-        case "error":
-          tmpType = "error";
-          tmpTitle = "error";
+        case 'error':
+          tmpType = 'error';
+          tmpTitle = 'error';
           break;
 
         // warning mode
-        case "warning":
-          tmpType = "warning";
-          tmpTitle = "warning";
+        case 'warning':
+          tmpType = 'warning';
+          tmpTitle = 'warning';
           break;
 
         // others
         default:
-          tmpType = "none";
-          tmpTitle = "";
+          tmpType = 'none';
+          tmpTitle = '';
       }
 
       // options
@@ -119,12 +124,9 @@ class Dialog {
       };
       // show dialog
       dialog.showMessageBox(options);
+      Dialog.logger.info('dialog: showmessage finished.');
     } catch (e: unknown) {
-      // error
-      if (e instanceof Error) {
-        // error
-        console.log(e.message);
-      }
+      Dialog.logger.error(e);
     }
   }
 }

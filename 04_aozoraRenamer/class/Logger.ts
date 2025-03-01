@@ -3,7 +3,7 @@
  *
  * name：Logger
  * function：Logging operation
- * updated: 2024/09/28
+ * updated: 2025/03/01
  **/
 
 'use strict';
@@ -12,28 +12,34 @@
 import * as log4js from 'log4js' // Logger
 import * as path from 'path'; // path
 
+// home directory path
+const HOME_DIR: string = process.env[process.platform == "win32" ? "USERPROFILE" : "HOME"]!;
+
 // Logger class
 class Logger {
-
   // logger
   static logger: any;
   // logger dir path
   static loggerDir: string;
 
   // construnctor
-  constructor(dirpath: string) {
+  constructor(dirname: string) {
     // logger dir path
-    Logger.loggerDir = dirpath;
+    Logger.loggerDir = path.join(HOME_DIR, "nthree", dirname);
     // Logger config
-    const prefix: string = `${(new Date().toJSON().slice(0, 10))}.log`
+    const prefix: string = `${dirname}-${(new Date().toJSON().slice(0, 10))}`
     // logger config
     log4js.configure({
       appenders: {
-        app: { type: 'dateFile', filename: path.join(Logger.loggerDir, prefix) },
+        app: { type: 'dateFile', filename: path.join(Logger.loggerDir, `${prefix}.log`) },
+        result_raw: {
+          type: 'file', filename: path.join(Logger.loggerDir, `${prefix}_debug.log`)
+        },
+        result: { type: 'logLevelFilter', appender: 'result_raw', level: 'info' },
         out: { type: 'stdout' },
       },
       categories: {
-        default: { appenders: ['out', 'app'], level: 'info' }
+        default: { appenders: ['out', 'result', 'app'], level: 'debug' }
       }
     });
     // logger instance
@@ -50,15 +56,6 @@ class Logger {
     Logger.logger.info(message);
   }
 
-  // log error
-  error = (e: unknown) => {
-    // error
-    if (e instanceof Error) {
-      // error
-      Logger.logger.error(e.message);
-    }
-  }
-
   // log debug info
   debug = (message: string) => {
     Logger.logger.debug(message);
@@ -67,6 +64,15 @@ class Logger {
   // log trace info
   trace = (message: string) => {
     Logger.logger.trace(message);
+  }
+
+  // log error
+  error = (e: unknown) => {
+    // error
+    if (e instanceof Error) {
+      // error
+      Logger.logger.error(e.message);
+    }
   }
 
   // shutdown logger

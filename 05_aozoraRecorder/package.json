@@ -1,7 +1,7 @@
 {
   "name": "numthree.com.aozorarecorder",
   "productName": "aozoraRecorder",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "application for aozorarecorder",
   "main": "record.ts",
   "scripts": {
