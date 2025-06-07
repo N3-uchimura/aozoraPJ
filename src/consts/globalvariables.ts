@@ -10,6 +10,7 @@ export namespace myConst {
   export const COMPANY_NAME = "nthree";
   export const APP_NAME = "aozorastation";
   export const LOG_LEVEL = "info";
+  export const DEFAULT_ENCODING: string = "utf8";
   export const CSV_ENCODING = "SJIS";
   export const OUTPUT_PATH = "./output/";
   export const DEF_AOZORA_AUTHOR_URL = 'https://www.aozora.gr.jp/index_pages/person';
@@ -26,11 +27,18 @@ export namespace myNums {
   export const PORT = 5000;
 }
 
+// columns
+export namespace myColumns {
+  export const AUTHOR_COLUMNS = [
+    'No.', '作家名', '作家名読み', 'ローマ字表記', '生年', '没年'
+  ];
+}
+
 // selectors
 export namespace mySelectors {
   export const ZIPLINK_SELECTOR = 'body > table.download > tbody > tr:nth-child(2) > td:nth-child(3) > a';
+  export const FINALLINK_SELECTOR = 'body > center > table.list > tbody';
 }
-
 
 // links
 export namespace myLinks {

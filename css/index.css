@@ -4,39 +4,6 @@
 
 @charset "utf-8";
 
-/* css reset */
-html {
-  -webkit-user-select: none;
-  -webkit-user-drag: none;
-  cursor: default;
-}
-
-h1,
-h2,
-h3,
-p {
-  margin: 0;
-  padding: 0;
-}
-
-input,
-textarea,
-select,
-button,
-img {
-  -webkit-user-drag: none;
-}
-
-.draggable {
-  -webkit-app-region: drag;
-}
-
-.selectable {
-  -webkit-user-select: auto;
-  cursor: auto;
-}
-
-/* css */
 body {
   text-align: center;
   width: 95%;
@@ -46,17 +13,22 @@ body {
 h1 {
   font-size: 1.7rem;
   color: #fff;
-  background-color: #0000cd
+  margin: 10px 0;
+  padding: 5px 0;
+  background-color: #134A63;
 }
 
-h3 {
-  color: #0000cd;
+h2 {
+  margin: 10px 0 0 0;
+  color: #134A63;
   font-weight: bolder;
 }
 
 p {
   font-size: 0.9rem;
   font-weight: bold;
+  padding: 10px;
+  margin-top: 10px;
 }
 
 footer {
@@ -70,15 +42,46 @@ footer {
 }
 
 .wrapper {
-  margin-top: 30px;
+  border: 5px solid #134A63;
+}
+
+.pubflex {
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pubwrapper {
+  height: 60px;
+  margin: 20px 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  font-weight: bolder;
+}
+
+.pubwrapper div {
+  padding: 0 20px;
+}
+
+.pubwrapper input {
+  width: 400px;
+  height: 40px;
+}
+
+.urlbox {
+  width: 480px;
+  height: 40px;
+}
+
+.checkbox_area {
+  margin: 20px 0 20px;
 }
 
 .operation_area {
-  padding: 10px 0;
-}
-
-.operation_area div {
-  margin: 20px 0;
+  margin: 60px 0 60px;
 }
 
 .button-container {
@@ -88,17 +91,15 @@ footer {
   align-items: center;
 }
 
-#csvfilepath {
-  font-size: 0.7rem;
+#resultTable {
+  width: 1280px;
 }
 
-#scrapingstatus {
-  height: 100px;
-  font-size: 0.7rem;
-}
-
-.progressarea {
-  font-size: 0.8rem;
+.box-standard {
+  width: 200px;
+  height: 30px;
+  font-size: 1.7rem;
+  text-align: right;
 }
 
 /* blue buttons */
@@ -178,10 +179,54 @@ footer {
 }
 
 /* general buttons */
+.button-5 {
+  background-color: #FFCC99;
+}
+
+.button-5:active {
+  background-color: #FFB770;
+}
+
+/* general buttons */
 .button-4 {
   background-color: #CCE6FF;
 }
 
 .button-4:active {
   background-color: #B3D9FF;
+}
+
+/* general buttons */
+.button-3 {
+  background-color: #FFFFB3;
+}
+
+.button-3:active {
+  background-color: #FFFF99;
+}
+
+/* general buttons */
+.button-2 {
+  background-color: #AFE1AF;
+}
+
+.button-2:active {
+  background-color: #9FE2BF;
+}
+
+/* gray buttons */
+.button-1 {
+  background-color: #898985;
+}
+
+.button-1:active {
+  background-color: #AFAFAA;
+}
+
+#languagearea {
+  margin-right:10px;
+}
+
+#secret {
+  display:none;
 }

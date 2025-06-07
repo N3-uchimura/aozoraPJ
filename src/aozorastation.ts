@@ -6,27 +6,32 @@
 
 'use strict';
 
-/// const
+/// Constants
 // namespace
-import { myConst, myLinks, myNums, mySelectors } from './consts/globalvariables';
+import { myConst, myLinks, myNums, myColumns, mySelectors } from './consts/globalvariables';
+const WINDOW_WIDTH: number = 1200; // window width
+const WINDOW_HEIGHT: number = 1000; // window height
 
-/// import modules
+/// Modules
 import { BrowserWindow, app, ipcMain, Tray, Menu, nativeImage } from 'electron'; // electron
 import * as path from 'node:path'; // path
 import { rmSync, createWriteStream, existsSync } from 'node:fs'; // file system
 import { copyFile, readFile, writeFile, rename, readdir } from 'node:fs/promises'; // file system
+import { setTimeout } from 'node:timers/promises'; // wait for seconds
 import ffmpeg from 'fluent-ffmpeg'; // ffmpeg
 import iconv from 'iconv-lite'; // Text converter
-import Encoding from 'encoding-japanese';
-import { promisify } from 'util';
-import axios from 'axios';
-import * as stream from 'stream';
-import { Modifiy } from './class/ElTextModifiy0518'; // scraper
+import Encoding from 'encoding-japanese'; // for encoding
+import { promisify } from 'util'; // promisify
+import axios from 'axios'; // fot http communication
+import keytar from "keytar"; // save key
+import * as stream from 'stream'; // steramer
+import { Modifiy } from './class/ElTextModifiy0518'; // modifier
 import { Scrape } from './class/ElScrape0517'; // scraper
 import ELLogger from './class/ElLogger'; // logger
 import Dialog from './class/ElDialog0414'; // dialog
-import CSV from './class/ElCsv0414'; // csv
+import CSV from './class/ElCsv0414'; // csvmaker
 import MKDir from './class/ElMkdir0414'; // mdkir
+
 // log level
 const LOG_LEVEL: string = myConst.LOG_LEVEL ?? 'all';
 // loggeer instance
@@ -42,6 +47,15 @@ const puppScraper: Scrape = new Scrape(logger);
 //  modify
 const modifyMaker: Modifiy = new Modifiy(logger);
 
+/// interfaces
+// window option
+interface windowOption {
+  width: number; // window width
+  height: number; // window height
+  defaultEncoding: string; // default encode
+  webPreferences: Object; // node
+}
+
 /*
  main
 */
@@ -53,19 +67,23 @@ let isQuiting: boolean;
 // create main window
 const createWindow = (): void => {
   try {
-    // window
-    mainWindow = new BrowserWindow({
-      width: 1200, // width
-      height: 1000, // height
+    // window options
+    const windowOptions: windowOption = {
+      width: WINDOW_WIDTH, // window width
+      height: WINDOW_HEIGHT, // window height
+      defaultEncoding: myConst.DEFAULT_ENCODING, // encoding
       webPreferences: {
-        nodeIntegration: false, // Node.js use
-        contextIsolation: true, // isolate context
-        preload: path.join(__dirname, 'preload.js'), // preload
-      },
-    });
-
+        nodeIntegration: false, // node
+        contextIsolation: true, // isolate
+        preload: path.join(__dirname, "preload/preload.js"), // preload
+      }
+    }
+    // Electron window
+    mainWindow = new BrowserWindow(windowOptions);
+    // hide menubar
+    mainWindow.setMenuBarVisibility(false);
     // index.html load
-    mainWindow.loadFile(path.join(__dirname, '../author.html'));
+    mainWindow.loadFile(path.join(__dirname, '../index.html'));
     // ready
     mainWindow.once('ready-to-show', () => {
       // dev mode
@@ -85,12 +103,11 @@ const createWindow = (): void => {
     // close window
     mainWindow.on('close', (event: any): void => {
       // not closing
-      if (!isQuiting) {
-        // without apple
-        if (process.platform !== 'darwin') {
-          // return false
-          event.returnValue = false;
-        }
+      if (!isQuiting && process.platform !== 'darwin') {
+        // quit
+        app.quit();
+        // return false
+        event.returnValue = false;
       }
     });
 
@@ -113,6 +130,24 @@ app.on('ready', async () => {
   logger.info('app: electron is ready');
   // create window
   createWindow();
+  // menu label
+  let displayLabel: string = '';
+  // close label
+  let closeLabel: string = '';
+  // get language
+  const language = await keytar.getPassword('language', 'admin') ?? 'japanese';
+  // japanese
+  if (language == 'japanese') {
+    // set menu label
+    displayLabel = '表示';
+    // set close label
+    closeLabel = '閉じる';
+  } else {
+    // set menu label
+    displayLabel = 'show';
+    // set close label
+    closeLabel = 'close';
+  }
   // make dir
   mkdirManager.mkDirAll(['output', 'logs']);
   // icons
@@ -123,13 +158,15 @@ app.on('ready', async () => {
   const contextMenu: Electron.Menu = Menu.buildFromTemplate([
     // show
     {
-      label: '表示', click: () => {
+      label: displayLabel,
+      click: () => {
         mainWindow.show();
       }
     },
     // close
     {
-      label: '閉じる', click: () => {
+      label: closeLabel,
+      click: () => {
         app.quit();
       }
     }
@@ -171,7 +208,7 @@ ipcMain.on('scrape', async (event: any, _: any) => {
     logger.info('ipc: scrape mode');
     // success
     let successCounter: number = 0;
-    // faile
+    // fail
     let failCounter: number = 0;
     // init scraper
     await puppScraper.init();
@@ -213,7 +250,7 @@ ipcMain.on('scrape', async (event: any, _: any) => {
               for await (const k of links) {
                 try {
                   // selector
-                  const finalLinkSelector: string = `body > center > table.list > tbody > tr:nth-child(${k}) > td:nth-child(2) > a`;
+                  const finalLinkSelector: string = `${mySelectors.FINALLINK_SELECTOR} > tr:nth-child(${k}) > td:nth-child(2) > a`;
                   // wait for 2sec
                   await puppScraper.doWaitFor(2000);
 
@@ -266,7 +303,7 @@ ipcMain.on('scrape', async (event: any, _: any) => {
 
                 } finally {
                   // URL
-                  event.sender.send('statusUpdate', `process: downloading No.${k - 1}`);
+                  event.sender.send('statusUpdate', `downloading No.${k - 1}`);
                   // update total
                   event.sender.send('update', {
                     success: successCounter,
@@ -281,7 +318,6 @@ ipcMain.on('scrape', async (event: any, _: any) => {
               logger.error(err2);
             }
           }
-
         }
 
       } catch (err3: unknown) {
@@ -377,7 +413,7 @@ ipcMain.on('authorscrape', async (event: any, _: any) => {
         failCounter++;
       } finally {
         // URL
-        event.sender.send('statusUpdate', `process: downloading Page.${i}`);
+        event.sender.send('statusUpdate', `downloading Page.${i}`);
         // update total
         event.sender.send('update', {
           success: successCounter,
@@ -419,7 +455,7 @@ ipcMain.on('authorscrape', async (event: any, _: any) => {
       finalJsonArray.push(tmpObj);
     });
     // write data
-    await csvMaker.makeCsvData(finalJsonArray, columns, filePath);
+    await csvMaker.makeCsvData(finalJsonArray, myColumns.AUTHOR_COLUMNS, filePath);
     // wait for 1sec
     await puppScraper.doWaitFor(1000);
     // end message
@@ -651,87 +687,6 @@ ipcMain.on('extract', async () => {
   }
 });
 
-// finalize
-ipcMain.on('finalize', async () => {
-  try {
-    logger.info('ipc: finalize mode');
-    // make dir
-    await mkdirManager.mkDirAll(['./download', './tmp', './backup']);
-
-    // subdir list
-    const allDirents: any = await readdir('tmp/', { withFileTypes: true });
-    const dirNames: any[] = allDirents.filter((dirent: any) => dirent.isDirectory()).map(({ name }: any) => name);
-    logger.debug(`filepaths are ${dirNames}`);
-
-    // loop
-    await Promise.all(dirNames.map(async (dir: any): Promise<void> => {
-      return new Promise(async (resolve1, reject1) => {
-        try {
-          // target dir path
-          const targetDir: string = path.join('./tmp', dir);
-          // file list in subfolder
-          const audioFiles: string[] = (await readdir(targetDir)).filter((ad: string) => path.parse(ad).ext == '.wav');
-
-          // filepath list
-          const filePaths: any[] = audioFiles.map((fl: string) => {
-            return path.join('./tmp', dir, fl);
-          });
-          logger.debug(`files are ${filePaths}`);
-
-          // DL path
-          const downloadDir: string = './backup';
-          // output path
-          const outputPath: string = path.join('./download', `${dir}.wav`);
-
-          logger.debug(`outputPath is ${outputPath}`);
-
-          // ffmpeg
-          let mergedVideo: any = ffmpeg();
-
-          // merge
-          await Promise.all(filePaths.map(async (path: string): Promise<void> => {
-            return new Promise(async (resolve2, reject2) => {
-              try {
-                // merged video
-                mergedVideo = mergedVideo.mergeAdd(path);
-                logger.debug(`add to mergelist ${path}...`);
-                // complete
-                resolve2();
-
-              } catch (err1: unknown) {
-                logger.error(err1);
-                // error
-                reject2();
-              }
-            });
-          }));
-
-          logger.info('merging files...');
-          // merge
-          mergedVideo.mergeToFile(outputPath, downloadDir)
-            .on('error', (err2: unknown) => {
-              logger.error(err2);
-              reject1();
-            })
-            .on('end', function () {
-              logger.debug(`${dir}.wav  merge finished.`);
-              // result
-              resolve1();
-            });
-
-        } catch (error: unknown) {
-          logger.error(error);
-          // error
-          reject1();
-        }
-      });
-    })).then(() => logger.info('operation finished.'));
-
-  } catch (e: unknown) {
-    logger.error(e);
-  }
-});
-
 // modify
 ipcMain.on('modify', async () => {
   try {
@@ -829,18 +784,9 @@ ipcMain.on('modify', async () => {
   }
 });
 
+
 // record
 ipcMain.on('record', async () => {
-  try {
-    logger.info('ipc: record mode');
-
-  } catch (e: unknown) {
-    logger.error(e);
-  }
-});
-
-// rename
-ipcMain.on('rename', async () => {
   try {
     logger.info('operation started.');
     // make dir
@@ -986,6 +932,194 @@ ipcMain.on('rename', async () => {
     logger.error(e);
   }
 });
+
+// finalize
+ipcMain.on('finalize', async () => {
+  try {
+    logger.info('ipc: finalize mode');
+    // make dir
+    await mkdirManager.mkDirAll(['./download', './tmp', './backup']);
+
+    // subdir list
+    const allDirents: any = await readdir('tmp/', { withFileTypes: true });
+    const dirNames: any[] = allDirents.filter((dirent: any) => dirent.isDirectory()).map(({ name }: any) => name);
+    logger.debug(`filepaths are ${dirNames}`);
+
+    // loop
+    await Promise.all(dirNames.map(async (dir: any): Promise<void> => {
+      return new Promise(async (resolve1, reject1) => {
+        try {
+          // target dir path
+          const targetDir: string = path.join('./tmp', dir);
+          // file list in subfolder
+          const audioFiles: string[] = (await readdir(targetDir)).filter((ad: string) => path.parse(ad).ext == '.wav');
+
+          // filepath list
+          const filePaths: any[] = audioFiles.map((fl: string) => {
+            return path.join('./tmp', dir, fl);
+          });
+          logger.debug(`files are ${filePaths}`);
+
+          // DL path
+          const downloadDir: string = './backup';
+          // output path
+          const outputPath: string = path.join('./download', `${dir}.wav`);
+
+          logger.debug(`outputPath is ${outputPath}`);
+
+          // ffmpeg
+          let mergedVideo: any = ffmpeg();
+
+          // merge
+          await Promise.all(filePaths.map(async (path: string): Promise<void> => {
+            return new Promise(async (resolve2, reject2) => {
+              try {
+                // merged video
+                mergedVideo = mergedVideo.mergeAdd(path);
+                logger.debug(`add to mergelist ${path}...`);
+                // complete
+                resolve2();
+
+              } catch (err1: unknown) {
+                logger.error(err1);
+                // error
+                reject2();
+              }
+            });
+          }));
+
+          logger.info('merging files...');
+          // merge
+          mergedVideo.mergeToFile(outputPath, downloadDir)
+            .on('error', (err2: unknown) => {
+              logger.error(err2);
+              reject1();
+            })
+            .on('end', function () {
+              logger.debug(`${dir}.wav  merge finished.`);
+              // result
+              resolve1();
+            });
+
+        } catch (error: unknown) {
+          logger.error(error);
+          // error
+          reject1();
+        }
+      });
+    })).then(() => logger.info('operation finished.'));
+
+  } catch (e: unknown) {
+    logger.error(e);
+  }
+});
+
+// rename
+ipcMain.on('rename', async () => {
+  try {
+    logger.info('ipc: rename mode');
+    // make directory
+    await mkdirManager.mkDirAll(['txt', 'logs']);
+    // file list
+    const files: string[] = await readdir('txt/');
+
+    // promise
+    await Promise.all(files.map((fl: string, idx: number): Promise<void> => {
+      return new Promise(async (resolve1, _) => {
+        try {
+          // file name
+          let newFileName: string = '';
+          // file path
+          const filePath: string = path.join(__dirname, 'txt', fl);
+          // renamed path
+          const renamePath: string = path.join(__dirname, 'renamed');
+          // file reading
+          const txtdata: Buffer = await readFile(filePath);
+          // char encode
+          const detectedEncoding: string | boolean = Encoding.detect(txtdata);
+          logger.info('charcode: ' + detectedEncoding);
+          // if not string
+          if (typeof (detectedEncoding) !== 'string') {
+            throw new Error('error-encoding');
+          }
+          // char decode
+          const str: string = iconv.decode(txtdata, detectedEncoding);
+          logger.debug('char decoding finished.');
+          // wait for 1sec
+          await setTimeout(1000);
+          // split on \r\n
+          const strArray: string[] = str.split(/\r\n/);
+          // title
+          const titleStr: string = strArray[0];
+          // subtitle
+          const subTitleStr: string = strArray[1];
+          // author
+          const authorStr: string = strArray[2];
+          // index
+          const paddedIndex: string = (idx + 8189).toString().padStart(5, '0');
+
+          if (!authorStr) {
+            // filename
+            newFileName = path.join(renamePath, `${paddedIndex}_${titleStr}_${subTitleStr}.txt`);
+
+          } else {
+            // filename
+            newFileName = path.join(renamePath, `${paddedIndex}_${titleStr}_${subTitleStr}_${authorStr}.txt`);
+          }
+
+          // prohibit symbol
+          const notSymbol: string[] = ['\\', '/', ':', '*', '?', '"', '<', '>', '|'];
+
+          // tmp
+          let tmpStr: string = '';
+
+          // loop
+          await Promise.all(notSymbol.map((symb: string): Promise<void> => {
+            return new Promise(async (resolve2, _) => {
+              try {
+                // tmp
+                tmpStr = newFileName;
+
+                // include symbol
+                if (newFileName.includes(symb)) {
+                  tmpStr = tmpStr.replace(symb, '');
+                }
+                // result
+                resolve2();
+
+              } catch (error: unknown) {
+                if (error instanceof Error) {
+                  logger.error(error.message);
+                }
+              }
+            });
+          }));
+
+          if (tmpStr.length < 255) {
+            // rename
+            await rename(filePath, tmpStr);
+            // wait for 1sec
+            await setTimeout(1000);
+
+            // result
+            resolve1();
+          }
+
+        } catch (err: unknown) {
+          if (err instanceof Error) {
+            logger.error(err.message);
+          }
+        }
+      });
+    }));
+    // result
+    logger.info('operation finished.');
+
+  } catch (e: unknown) {
+    logger.error(e);
+  }
+});
+
 
 // exit
 ipcMain.on('exit', async () => {
